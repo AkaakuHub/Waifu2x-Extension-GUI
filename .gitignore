@@ -15,6 +15,8 @@ moc_*.cpp
 moc_*.h
 ui_*.h
 qrc_*.cpp
+moc_predefs.h
+Makefile
 
 # Object files
 *.o
@@ -58,3 +60,8 @@ venv/
 # Test outputs
 test-api.json
 debug-*.sh
+
+# Temporary work files
+todo_worker*.md
+worker_summary.md
+setup-qt5-mac.sh
