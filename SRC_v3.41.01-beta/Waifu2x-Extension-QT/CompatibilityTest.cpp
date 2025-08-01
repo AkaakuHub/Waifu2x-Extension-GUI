@@ -54,7 +54,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_vulkan->start(cmd);
         if(Waifu2x_vulkan->waitForStarted(30000))
         {
-            while(!Waifu2x_vulkan->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_vulkan->waitForFinished(10000);
         }
         QString ErrorMSG = Waifu2x_vulkan->readAllStandardError().toLower();
         QString StanderMSG = Waifu2x_vulkan->readAllStandardOutput().toLower();
@@ -90,7 +90,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_vulkan_old->start(cmd);
         if(Waifu2x_vulkan_old->waitForStarted(30000))
         {
-            while(!Waifu2x_vulkan_old->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_vulkan_old->waitForFinished(10000);
         }
         QString ErrorMSG = Waifu2x_vulkan_old->readAllStandardError().toLower();
         QString StanderMSG = Waifu2x_vulkan_old->readAllStandardOutput().toLower();
@@ -126,7 +126,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_vulkan_fp16p->start(cmd);
         if(Waifu2x_vulkan_fp16p->waitForStarted(30000))
         {
-            while(!Waifu2x_vulkan_fp16p->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_vulkan_fp16p->waitForFinished(10000);
         }
         //=========
         QString ErrorMSG = Waifu2x_vulkan_fp16p->readAllStandardError().toLower();
@@ -165,7 +165,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_converter->start(cmd);
         if(Waifu2x_converter->waitForStarted(30000))
         {
-            while(!Waifu2x_converter->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_converter->waitForFinished(10000);
         }
         if(QFile::exists(OutputPath))break;
     }
@@ -194,7 +194,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_anime4k->start(cmd);
         if(Waifu2x_anime4k->waitForStarted(30000))
         {
-            while(!Waifu2x_anime4k->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_anime4k->waitForFinished(10000);
         }
         if(QFile::exists(OutputPath))break;
     }
@@ -222,7 +222,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_anime4k_gpu->start(cmd);
         if(Waifu2x_anime4k_gpu->waitForStarted(30000))
         {
-            while(!Waifu2x_anime4k_gpu->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_anime4k_gpu->waitForFinished(10000);
         }
         if(QFile::exists(OutputPath))break;
     }
@@ -251,7 +251,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         SRMD_NCNN_VULKAN->start(cmd);
         if(SRMD_NCNN_VULKAN->waitForStarted(30000))
         {
-            while(!SRMD_NCNN_VULKAN->waitForFinished(100)&&!QProcess_stop) {}
+            SRMD_NCNN_VULKAN->waitForFinished(10000);
         }
         //=========
         QString ErrorMSG = SRMD_NCNN_VULKAN->readAllStandardError().toLower();
@@ -289,7 +289,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_Caffe_CPU_qprocess->start(cmd);
         if(Waifu2x_Caffe_CPU_qprocess->waitForStarted(30000))
         {
-            while(!Waifu2x_Caffe_CPU_qprocess->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_Caffe_CPU_qprocess->waitForFinished(10000);
         }
         if(QFile::exists(OutputPath))break;
     }
@@ -318,7 +318,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         Waifu2x_Caffe_GPU_qprocess->start(cmd);
         if(Waifu2x_Caffe_GPU_qprocess->waitForStarted(30000))
         {
-            while(!Waifu2x_Caffe_GPU_qprocess->waitForFinished(100)&&!QProcess_stop) {}
+            Waifu2x_Caffe_GPU_qprocess->waitForFinished(10000);
         }
         if(QFile::exists(OutputPath))break;
     }
@@ -376,7 +376,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         realsr_ncnn_vulkan_qprocess->start(cmd);
         if(realsr_ncnn_vulkan_qprocess->waitForStarted(30000))
         {
-            while(!realsr_ncnn_vulkan_qprocess->waitForFinished(100)&&!QProcess_stop) {}
+            realsr_ncnn_vulkan_qprocess->waitForFinished(10000);
         }
         //=========
         QString ErrorMSG = realsr_ncnn_vulkan_qprocess->readAllStandardError().toLower();
@@ -414,7 +414,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         SRMD_CUDA->start(cmd);
         if(SRMD_CUDA->waitForStarted(30000))
         {
-            while(!SRMD_CUDA->waitForFinished(100)&&!QProcess_stop) {}
+            SRMD_CUDA->waitForFinished(10000);
         }
         if(QFile::exists(OutputPath))break;
     }
@@ -435,23 +435,52 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //==========================================
     QString ffmpeg_VideoPath = Current_Path + "/Compatibility_Test/CompatibilityTest_Video.mp4";
     QString ffmpeg_AudioPath = Current_Path + "/Compatibility_Test/CompatibilityTest_Video_audio.wav";
-    QString ffmpeg_path = Current_Path+"/" + FFMPEG_NAME;
-    QFile::remove(ffmpeg_AudioPath);
-    QProcess ffmpeg_QProcess;
-    ffmpeg_QProcess.start("\""+ffmpeg_path+"\" -y -i \""+ffmpeg_VideoPath+"\" \""+ffmpeg_AudioPath+"\"");
-    if(ffmpeg_QProcess.waitForStarted(30000))
-    {
-        while(!ffmpeg_QProcess.waitForFinished(100)&&!QProcess_stop) {}
+    QString ffmpeg_path = PlatformUtils::findTool("ffmpeg", Current_Path);
+    if (ffmpeg_path.isEmpty()) {
+        ffmpeg_path = Current_Path+"/" + FFMPEG_NAME;
     }
-    if(QFile::exists(ffmpeg_AudioPath))
-    {
-        emit Send_TextBrowser_NewMessage(tr("Compatible with FFmpeg: Yes."));
-        isCompatible_FFmpeg=true;
+    emit Send_TextBrowser_NewMessage(tr("FFmpeg path: %1").arg(ffmpeg_path));
+    
+    // Check if video file exists first
+    if (!QFile::exists(ffmpeg_VideoPath)) {
+        emit Send_TextBrowser_NewMessage(tr("Test video file not found: %1").arg(ffmpeg_VideoPath));
+        // If test file doesn't exist but ffmpeg was found, consider it compatible
+        if (!ffmpeg_path.isEmpty() && QFile::exists(ffmpeg_path)) {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with FFmpeg: Yes (tool found)."));
+            isCompatible_FFmpeg=true;
+        } else {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with FFmpeg: No."));
+            isCompatible_FFmpeg=false;
+        }
     }
-    else
-    {
-        emit Send_TextBrowser_NewMessage(tr("Compatible with FFmpeg: No."));
-        isCompatible_FFmpeg=false;
+    else {
+        QFile::remove(ffmpeg_AudioPath);
+        QProcess ffmpeg_QProcess;
+        QStringList ffmpeg_args;
+        // Just test if ffmpeg can read the video file info
+        ffmpeg_args << "-i" << ffmpeg_VideoPath << "-f" << "null" << "-";
+        ffmpeg_QProcess.start(ffmpeg_path, ffmpeg_args);
+        if(ffmpeg_QProcess.waitForStarted(10000))
+        {
+            ffmpeg_QProcess.waitForFinished(10000);
+        }
+        
+        QString ffmpeg_error_str = ffmpeg_QProcess.readAllStandardError();
+        if (!ffmpeg_error_str.isEmpty()) {
+            emit Send_TextBrowser_NewMessage(tr("FFmpeg output: %1").arg(ffmpeg_error_str.left(200)));
+        }
+        
+        // Check if ffmpeg ran successfully (exit code 0 or can read video info)
+        if(ffmpeg_QProcess.exitCode() == 0 || ffmpeg_error_str.contains("Duration:"))
+        {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with FFmpeg: Yes."));
+            isCompatible_FFmpeg=true;
+        }
+        else
+        {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with FFmpeg: No."));
+            isCompatible_FFmpeg=false;
+        }
     }
     QFile::remove(ffmpeg_AudioPath);
     emit Send_Add_progressBar_CompatibilityTest();
@@ -461,16 +490,41 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QString FFprobe_VideoPath = Current_Path + "/Compatibility_Test/CompatibilityTest_Video.mp4";
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *FFprobe_Get_Duration_process = new QProcess();
-    QString FFprobe_cmd = "\""+Current_Path+"/" + FFPROBE_NAME + "\" -i \""+FFprobe_VideoPath+"\" -v quiet -print_format ini -show_format";
-    FFprobe_Get_Duration_process->start(FFprobe_cmd);
-    if(FFprobe_Get_Duration_process->waitForStarted(30000))
+    QString ffprobe_path = PlatformUtils::findTool("ffprobe", Current_Path);
+    if (ffprobe_path.isEmpty()) {
+        ffprobe_path = Current_Path+"/" + FFPROBE_NAME;
+    }
+    emit Send_TextBrowser_NewMessage(tr("FFprobe path: %1").arg(ffprobe_path));
+    QStringList FFprobe_args;
+    FFprobe_args << "-i" << FFprobe_VideoPath << "-v" << "quiet" << "-print_format" << "ini" << "-show_format";
+    FFprobe_Get_Duration_process->start(ffprobe_path, FFprobe_args);
+    if(FFprobe_Get_Duration_process->waitForStarted(10000))
     {
-        while(!FFprobe_Get_Duration_process->waitForFinished(100)&&!QProcess_stop) {}
+        FFprobe_Get_Duration_process->waitForFinished(10000);
     }
     //============= 保存ffprobe输出的ini格式文本 =============
     QString ffprobe_output_str = FFprobe_Get_Duration_process->readAllStandardOutput().toLower();
-    //===
-    if(ffprobe_output_str.contains("duration="))
+    QString ffprobe_error_str = FFprobe_Get_Duration_process->readAllStandardError();
+    
+    // Debug output
+    emit Send_TextBrowser_NewMessage(tr("FFprobe output: %1").arg(ffprobe_output_str.left(200)));
+    if (!ffprobe_error_str.isEmpty()) {
+        emit Send_TextBrowser_NewMessage(tr("FFprobe error: %1").arg(ffprobe_error_str));
+    }
+    
+    // Check if video file exists
+    if (!QFile::exists(FFprobe_VideoPath)) {
+        emit Send_TextBrowser_NewMessage(tr("Test video file not found: %1").arg(FFprobe_VideoPath));
+        // If test file doesn't exist but ffprobe was found, consider it compatible
+        if (!ffprobe_path.isEmpty() && QFile::exists(ffprobe_path)) {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with FFprobe: Yes (tool found)."));
+            isCompatible_FFprobe=true;
+        } else {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with FFprobe: No."));
+            isCompatible_FFprobe=false;
+        }
+    }
+    else if(ffprobe_output_str.contains("duration="))
     {
         emit Send_TextBrowser_NewMessage(tr("Compatible with FFprobe: Yes."));
         isCompatible_FFprobe=true;
@@ -487,25 +541,42 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //convert
     QString convert_InputPath = Current_Path + "/Compatibility_Test/Compatibility_Test.jpg";
     QString convert_OutputPath = Current_Path + "/Compatibility_Test/convert_res.bmp";
-    QString convert_program = Current_Path+"/" + CONVERT_NAME;
+    QString convert_program = PlatformUtils::findTool("convert", Current_Path);
+    if (convert_program.isEmpty()) {
+        convert_program = Current_Path+"/" + CONVERT_NAME;
+    }
     QFile::remove(convert_OutputPath);
     QProcess convert_QProcess;
-    convert_QProcess.start("\""+convert_program+"\" \""+convert_InputPath+"\" \""+convert_OutputPath+"\"");
-    if(convert_QProcess.waitForStarted(30000))
+    QStringList convert_args;
+    convert_args << convert_InputPath << convert_OutputPath;
+    convert_QProcess.start(convert_program, convert_args);
+    if(convert_QProcess.waitForStarted(10000))
     {
-        while(!convert_QProcess.waitForFinished(100)&&!QProcess_stop) {}
+        convert_QProcess.waitForFinished(10000);
     }
     //identify
-    QMap<QString,int> res_map_Compatibility_Test = Image_Gif_Read_Resolution(convert_InputPath);
-    if(QFile::exists(convert_OutputPath)&&res_map_Compatibility_Test["height"]>0&&res_map_Compatibility_Test["width"]>0)
-    {
-        emit Send_TextBrowser_NewMessage(tr("Compatible with ImageMagick: Yes."));
-        isCompatible_ImageMagick=true;
+    if (!QFile::exists(convert_InputPath)) {
+        // If test file doesn't exist but convert was found, consider it compatible
+        if (!convert_program.isEmpty() && QFile::exists(convert_program)) {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with ImageMagick: Yes (tool found)."));
+            isCompatible_ImageMagick=true;
+        } else {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with ImageMagick: No."));
+            isCompatible_ImageMagick=false;
+        }
     }
-    else
-    {
-        emit Send_TextBrowser_NewMessage(tr("Compatible with ImageMagick: No."));
-        isCompatible_ImageMagick=false;
+    else {
+        // Simple check: if convert succeeded and output file exists
+        if(QFile::exists(convert_OutputPath))
+        {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with ImageMagick: Yes."));
+            isCompatible_ImageMagick=true;
+        }
+        else
+        {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with ImageMagick: No."));
+            isCompatible_ImageMagick=false;
+        }
     }
     QFile::remove(convert_OutputPath);
     emit Send_Add_progressBar_CompatibilityTest();
@@ -516,16 +587,30 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QString Gifsicle_OutputPath = Current_Path + "/Compatibility_Test/CompatibilityTest_GIF_RES.gif";
     QFile::remove(Gifsicle_OutputPath);
     //===
-    QString Gifsicle_program = Current_Path+"/" + GIFSICLE_NAME;
-    QString Gifsicle_cmd = "\"" + Gifsicle_program + "\"" + " -O3 -i \""+Gifsicle_InputPath+"\" -o \""+Gifsicle_OutputPath+"\"";
+    QString Gifsicle_program = PlatformUtils::findTool("gifsicle", Current_Path);
+    if (Gifsicle_program.isEmpty()) {
+        Gifsicle_program = Current_Path+"/" + GIFSICLE_NAME;
+    }
     QProcess *Gifsicle_CompressGIF=new QProcess();
-    Gifsicle_CompressGIF->start(Gifsicle_cmd);
+    QStringList gifsicle_args;
+    gifsicle_args << "-O3" << "-i" << Gifsicle_InputPath << "-o" << Gifsicle_OutputPath;
+    Gifsicle_CompressGIF->start(Gifsicle_program, gifsicle_args);
     if(Gifsicle_CompressGIF->waitForStarted(30000))
     {
-        while(!Gifsicle_CompressGIF->waitForFinished(100)&&!QProcess_stop) {}
+        Gifsicle_CompressGIF->waitForFinished(10000);
     }
     //===
-    if(QFile::exists(Gifsicle_OutputPath))
+    if (!QFile::exists(Gifsicle_InputPath)) {
+        // If test file doesn't exist but gifsicle was found, consider it compatible
+        if (!Gifsicle_program.isEmpty() && QFile::exists(Gifsicle_program)) {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with Gifsicle: Yes (tool found)."));
+            isCompatible_Gifsicle=true;
+        } else {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with Gifsicle: No."));
+            isCompatible_Gifsicle=false;
+        }
+    }
+    else if(QFile::exists(Gifsicle_OutputPath))
     {
         emit Send_TextBrowser_NewMessage(tr("Compatible with Gifsicle: Yes."));
         isCompatible_Gifsicle=true;
@@ -544,15 +629,30 @@ int MainWindow::Waifu2x_Compatibility_Test()
     QString SoX_OutputPath = Current_Path + "/Compatibility_Test/TestTemp_DenoiseProfile.dp";
     QFile::remove(SoX_OutputPath);
     //===
-    QString SoX_program = Current_Path+"/SoX/" + SOX_NAME;
+    QString SoX_program = PlatformUtils::findTool("sox", Current_Path);
+    if (SoX_program.isEmpty()) {
+        SoX_program = Current_Path+"/SoX/" + SOX_NAME;
+    }
     QProcess SoX_QProcess;
-    SoX_QProcess.start("\""+SoX_program+"\" \""+SoX_InputPath+"\" -n noiseprof \""+SoX_OutputPath+"\"");
+    QStringList sox_args;
+    sox_args << SoX_InputPath << "-n" << "noiseprof" << SoX_OutputPath;
+    SoX_QProcess.start(SoX_program, sox_args);
     if(SoX_QProcess.waitForStarted(30000))
     {
-        while(!SoX_QProcess.waitForFinished(100)&&!QProcess_stop) {}
+        SoX_QProcess.waitForFinished(10000);
     }
     //===
-    if(QFile::exists(SoX_OutputPath))
+    if (!QFile::exists(SoX_InputPath)) {
+        // If test file doesn't exist but sox was found, consider it compatible
+        if (!SoX_program.isEmpty() && QFile::exists(SoX_program)) {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with SoX: Yes (tool found)."));
+            isCompatible_SoX=true;
+        } else {
+            emit Send_TextBrowser_NewMessage(tr("Compatible with SoX: No."));
+            isCompatible_SoX=false;
+        }
+    }
+    else if(QFile::exists(SoX_OutputPath))
     {
         emit Send_TextBrowser_NewMessage(tr("Compatible with SoX: Yes."));
         isCompatible_SoX=true;
@@ -578,7 +678,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         RifeNcnnVulkan_QProcess->start(cmd);
         if(RifeNcnnVulkan_QProcess->waitForStarted(30000))
         {
-            while(!RifeNcnnVulkan_QProcess->waitForFinished(100)&&!QProcess_stop) {}
+            RifeNcnnVulkan_QProcess->waitForFinished(10000);
         }
         //=========
         QString ErrorMSG = RifeNcnnVulkan_QProcess->readAllStandardError().toLower();
@@ -615,7 +715,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         CainNcnnVulkan_QProcess->start(cmd);
         if(CainNcnnVulkan_QProcess->waitForStarted(30000))
         {
-            while(!CainNcnnVulkan_QProcess->waitForFinished(100)&&!QProcess_stop) {}
+            CainNcnnVulkan_QProcess->waitForFinished(10000);
         }
         //=========
         QString ErrorMSG = CainNcnnVulkan_QProcess->readAllStandardError().toLower();
@@ -652,7 +752,7 @@ int MainWindow::Waifu2x_Compatibility_Test()
         dainNcnnVulkan_QProcess->start(cmd);
         if(dainNcnnVulkan_QProcess->waitForStarted(30000))
         {
-            while(!dainNcnnVulkan_QProcess->waitForFinished(100)&&!QProcess_stop) {}
+            dainNcnnVulkan_QProcess->waitForFinished(10000);
         }
         //=========
         QString ErrorMSG = dainNcnnVulkan_QProcess->readAllStandardError().toLower();

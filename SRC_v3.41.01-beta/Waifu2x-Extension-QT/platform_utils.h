@@ -23,6 +23,8 @@
 #include <QString>
 #include <QDir>
 #include <QProcess>
+#include <QFile>
+#include <QApplication>
 
 // Platform-specific executable suffix
 #ifdef Q_OS_WIN
@@ -114,9 +116,52 @@ public:
     {
         return QDir::tempPath();
     }
+    
+    // Find tool in system PATH or application directory
+    static QString findTool(const QString& toolName, const QString& appDir = QString())
+    {
+#ifdef Q_OS_MAC
+        // First check if tool exists in system PATH
+        QProcess which;
+        which.start("which", QStringList() << toolName);
+        if (which.waitForFinished(3000)) {
+            QString systemPath = QString::fromUtf8(which.readAllStandardOutput()).trimmed();
+            if (!systemPath.isEmpty() && QFile::exists(systemPath)) {
+                return systemPath;
+            }
+        }
+#endif
+        
+        // Then check application directory
+        QString currentPath = appDir.isEmpty() ? qApp->applicationDirPath() : appDir;
+        QString localPath = currentPath + "/" + getExecutableName(toolName);
+        if (QFile::exists(localPath)) {
+            return localPath;
+        }
+        
+        // For Windows, check with _waifu2xEX suffix
+#ifdef Q_OS_WIN
+        QString winPath = currentPath + "/" + getExecutableName(toolName + "_waifu2xEX");
+        if (QFile::exists(winPath)) {
+            return winPath;
+        }
+#endif
+        
+        // Not found
+        return QString();
+    }
 };
 
 // Convenience macros for common tool names
+#ifdef Q_OS_MAC
+#define FFMPEG_NAME PlatformUtils::getExecutableName("ffmpeg")
+#define FFPROBE_NAME PlatformUtils::getExecutableName("ffprobe")
+#define CONVERT_NAME PlatformUtils::getExecutableName("convert")
+#define IDENTIFY_NAME PlatformUtils::getExecutableName("identify")
+#define GIFSICLE_NAME PlatformUtils::getExecutableName("gifsicle")
+#define WGET_NAME PlatformUtils::getExecutableName("wget")
+#define SOX_NAME PlatformUtils::getExecutableName("sox")
+#else
 #define FFMPEG_NAME PlatformUtils::getExecutableName("ffmpeg_waifu2xEX")
 #define FFPROBE_NAME PlatformUtils::getExecutableName("ffprobe_waifu2xEX")
 #define CONVERT_NAME PlatformUtils::getExecutableName("convert_waifu2xEX")
@@ -124,23 +169,44 @@ public:
 #define GIFSICLE_NAME PlatformUtils::getExecutableName("gifsicle_waifu2xEX")
 #define WGET_NAME PlatformUtils::getExecutableName("wget_waifu2xEX")
 #define SOX_NAME PlatformUtils::getExecutableName("sox_waifu2xEX")
+#endif
 
 // Waifu2x variants
+#ifdef Q_OS_MAC
+#define WAIFU2X_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan")
+#define WAIFU2X_NCNN_VULKAN_FP16P_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan-fp16p")
+#define WAIFU2X_CONVERTER_NAME PlatformUtils::getExecutableName("waifu2x-converter-cpp")
+#define WAIFU2X_CAFFE_NAME PlatformUtils::getExecutableName("waifu2x-caffe")
+#else
 #define WAIFU2X_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan_waifu2xEX")
 #define WAIFU2X_NCNN_VULKAN_FP16P_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan-fp16p_waifu2xEX")
 #define WAIFU2X_CONVERTER_NAME PlatformUtils::getExecutableName("waifu2x-converter-cpp_waifu2xEX")
 #define WAIFU2X_CAFFE_NAME PlatformUtils::getExecutableName("waifu2x-caffe_waifu2xEX")
+#endif
 
 // Other AI models
+#ifdef Q_OS_MAC
+#define SRMD_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("srmd-ncnn-vulkan")
+#define SRMD_CUDA_NAME PlatformUtils::getExecutableName("srmd-cuda")
+#define REALSR_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("realsr-ncnn-vulkan")
+#define ANIME4K_NAME PlatformUtils::getExecutableName("Anime4K")
+#else
 #define SRMD_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("srmd-ncnn-vulkan_waifu2xEX")
 #define SRMD_CUDA_NAME PlatformUtils::getExecutableName("srmd-cuda_waifu2xEX")
 #define REALSR_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("realsr-ncnn-vulkan_waifu2xEX")
 #define ANIME4K_NAME PlatformUtils::getExecutableName("Anime4K_waifu2xEX")
+#endif
 
 // Frame interpolation
+#ifdef Q_OS_MAC
+#define RIFE_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("rife-ncnn-vulkan")
+#define CAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("cain-ncnn-vulkan")
+#define DAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("dain-ncnn-vulkan")
+#else
 #define RIFE_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("rife-ncnn-vulkan_waifu2xEX")
 #define CAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("cain-ncnn-vulkan_waifu2xEX")
 #define DAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("dain-ncnn-vulkan_waifu2xEX")
+#endif
 
 // APNG tools
 #define APNGDIS_NAME PlatformUtils::getExecutableName("apngdis_waifu2xEX")

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Waifu2x-Extension-GUI Launcher Script
-# This script sets up all necessary environment variables and paths
+# This script sets up necessary environment variables and paths
 
 set -e
 
@@ -37,15 +37,8 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
 fi
 
-# Add external tools to PATH
-export PATH="$TOOLS_DIR:$PATH"
-
-# Set tool paths as environment variables (in case the app checks these)
-export WAIFU2X_NCNN_VULKAN_PATH="$TOOLS_DIR/waifu2x-ncnn-vulkan"
-export SRMD_NCNN_VULKAN_PATH="$TOOLS_DIR/srmd-ncnn-vulkan"
-export REALSR_NCNN_VULKAN_PATH="$TOOLS_DIR/realsr-ncnn-vulkan"
-export FFMPEG_PATH="$(which ffmpeg 2>/dev/null || echo '')"
-export FFPROBE_PATH="$(which ffprobe 2>/dev/null || echo '')"
+# Add system paths to PATH for tool detection
+export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # Check if external tools exist
 if [ -d "$TOOLS_DIR" ]; then
@@ -66,6 +59,50 @@ fi
 echo "Starting Waifu2x-Extension-GUI..."
 echo "----------------------------------------"
 
+# Change to app directory
+APP_DIR="$(dirname "$APP_EXEC")"
+cd "$APP_DIR"
+
+# Create necessary directories
+mkdir -p Compatibility_Test
+
+# Copy compatibility test files if they exist
+COMPAT_DIR="$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT/Compatibility_Test"
+if [ -d "$COMPAT_DIR" ]; then
+    echo "Setting up compatibility test files..."
+    cp -R "$COMPAT_DIR"/* Compatibility_Test/ 2>/dev/null || true
+fi
+
+# Set up tool directories and symlinks for ncnn-vulkan tools
+for tool in waifu2x-ncnn-vulkan srmd-ncnn-vulkan realsr-ncnn-vulkan realcugan-ncnn-vulkan rife-ncnn-vulkan cain-ncnn-vulkan dain-ncnn-vulkan; do
+    if [ -d "$TOOLS_DIR/$tool" ] && [ ! -d "$tool" ]; then
+        echo "Setting up $tool directory structure..."
+        mkdir -p "$tool"
+        
+        # Find the actual executable and models
+        tool_subdir=$(find "$TOOLS_DIR/$tool" -type d -name "*-macos" | head -1)
+        if [ -d "$tool_subdir" ]; then
+            # Create symlinks to executable and models
+            if [ -f "$tool_subdir/$tool" ]; then
+                ln -sf "$tool_subdir/$tool" "$tool/$tool" 2>/dev/null || true
+            fi
+            # Link model directories
+            for models in "$tool_subdir"/models*; do
+                if [ -d "$models" ]; then
+                    model_name=$(basename "$models")
+                    ln -sf "$models" "$tool/$model_name" 2>/dev/null || true
+                fi
+            done
+        fi
+    fi
+done
+
+# Special handling for waifu2x-ncnn-vulkan-old (use same binary as new version)
+if [ -d "waifu2x-ncnn-vulkan" ] && [ ! -d "waifu2x-ncnn-vulkan-old" ]; then
+    ln -sf waifu2x-ncnn-vulkan waifu2x-ncnn-vulkan-old 2>/dev/null || true
+fi
+
+echo "----------------------------------------"
+
 # Run the application
-cd "$(dirname "$APP_EXEC")"
 exec "$APP_EXEC"

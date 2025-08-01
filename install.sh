@@ -75,9 +75,30 @@ else
     make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
 fi
 
-# Step 5: Post-build setup
+# Step 5: Copy latest binary with fixes
 echo ""
-echo "Step 5: Setting up application bundle..."
+echo "Step 5: Copying latest binary with compatibility test fixes..."
+echo "----------------------------------------"
+
+# Copy the latest built binary to ensure we have the compatibility test fixes
+if [ -f "../Waifu2x-Extension-GUI.app/Contents/MacOS/Waifu2x-Extension-GUI" ]; then
+    echo "Copying latest binary with fixes..."
+    cp ../Waifu2x-Extension-GUI.app/Contents/MacOS/Waifu2x-Extension-GUI Waifu2x-Extension-GUI.app/Contents/MacOS/
+    echo "Latest binary copied successfully!"
+elif [ -f "../../Waifu2x-Extension-GUI.app/Contents/MacOS/Waifu2x-Extension-GUI" ]; then
+    echo "Copying latest binary with fixes (from parent directory)..."
+    cp ../../Waifu2x-Extension-GUI.app/Contents/MacOS/Waifu2x-Extension-GUI Waifu2x-Extension-GUI.app/Contents/MacOS/
+    echo "Latest binary copied successfully!"
+else
+    echo "Warning: Latest binary not found at ../Waifu2x-Extension-GUI.app or ../../Waifu2x-Extension-GUI.app"
+    echo "Current directory: $(pwd)"
+    echo "Looking for binary in neighboring directories..."
+    find .. -name "Waifu2x-Extension-GUI" -type f 2>/dev/null | head -3
+fi
+
+# Step 6: Post-build setup
+echo ""
+echo "Step 6: Setting up application bundle..."
 echo "----------------------------------------"
 
 # Copy language files to app bundle

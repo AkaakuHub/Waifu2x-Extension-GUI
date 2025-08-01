@@ -24,11 +24,25 @@ fi
 
 echo "Detected platform: ${PLATFORM}"
 
+# Check if tools are already downloaded
+if [ -d "${BIN_DIR}" ] && [ "$(find "${BIN_DIR}" -name "waifu2x-ncnn-vulkan" -o -name "srmd-ncnn-vulkan" -o -name "realsr-ncnn-vulkan" | wc -l)" -gt 0 ]; then
+    echo "Some tools already exist. Checking individual tools..."
+else
+    echo "Tools directory empty or missing, proceeding with downloads..."
+fi
+
 # Function to download and extract tool
 download_tool() {
     local tool_name=$1
     local repo_url=$2
     local asset_pattern=$3
+    
+    # Check if tool binaries already exist
+    local tool_bin="${BIN_DIR}/${tool_name}"
+    if [ -d "$tool_bin" ] && [ "$(ls -A "$tool_bin" 2>/dev/null)" ]; then
+        echo "  ${tool_name} binaries already exist in ${tool_bin}, skipping download"
+        return 0
+    fi
     
     echo "Downloading ${tool_name}..."
     
