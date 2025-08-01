@@ -18,7 +18,8 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "platform_utils.h"
+#include "qt_compat.h"
 /*
 手动检查更新:直接打开release页面
 */
@@ -70,7 +71,7 @@ int MainWindow::CheckUpadte_Auto()
         emit Send_TextBrowser_NewMessage(tr("Successfully downloaded update information from Github."));
         //==
         QSettings *configIniRead = new QSettings(Github_UpdateInfo_local, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=====
         if(configIniRead->value("/Latest_Version/Ver") == QVariant() || configIniRead->value("/Change_log/log") == QVariant())
         {
@@ -110,7 +111,7 @@ int MainWindow::CheckUpadte_Auto()
             emit Send_TextBrowser_NewMessage(tr("Successfully downloaded update information from Gitee."));
             //==
             QSettings *configIniRead = new QSettings(Gitee_UpdateInfo_local, QSettings::IniFormat);
-            configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+            setSettingsCodec(configIniRead);
             //=====
             if(configIniRead->value("/Latest_Version/Ver") == QVariant() || configIniRead->value("/Change_log/log") == QVariant())
             {

@@ -68,7 +68,9 @@ SOURCES += \
 
 HEADERS += \
     mainwindow.h \
-    topsupporterslist.h
+    topsupporterslist.h \
+    platform_utils.h \
+    qt_compat.h
 
 FORMS += \
     mainwindow.ui \
@@ -90,4 +92,17 @@ RESOURCES += \
     donate.qrc \
     icon.qrc
 
-RC_ICONS =icon/icon.ico
+# Platform-specific configurations
+win32 {
+    RC_ICONS = icon/icon.ico
+}
+
+unix:!macx {
+    # Linux-specific settings
+    ICON = icon/icon_main.png
+}
+
+macx {
+    # macOS-specific settings
+    ICON = icon/icon_main.icns
+}

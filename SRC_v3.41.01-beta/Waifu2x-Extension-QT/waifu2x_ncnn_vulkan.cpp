@@ -19,6 +19,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "qt_compat.h"
 
 int MainWindow::Waifu2x_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaChannel)
 {
@@ -619,7 +620,7 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -1049,7 +1050,7 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -1182,7 +1183,7 @@ int MainWindow::Waifu2x_NCNN_Vulkan_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载进度 =========================
         StartTime = configIniRead->value("/Progress/StartTime").toInt();
         isSplitComplete = configIniRead->value("/Progress/isSplitComplete").toBool();

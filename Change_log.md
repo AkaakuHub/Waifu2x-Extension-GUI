@@ -4,6 +4,15 @@
 
 #### [💾Latest stable release](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest)
 ---
+## v3.128.01 (Cross-platform Support)
+- NEW Feature: Cross-platform support for Linux and macOS.
+- Refactored codebase to use Qt's cross-platform APIs instead of Windows-specific functions.
+- Replaced Windows-specific commands (taskkill, explorer, nircmd) with cross-platform alternatives.
+- Added platform detection and conditional compilation for platform-specific code.
+- Updated build system to support compilation on Linux and macOS.
+- All executable file extensions are now handled dynamically based on the platform.
+- Improved file path handling to work correctly across different operating systems.
+---
 ## v3.127.01
 - NEW Model: V2 update for Omni-Small-W2xEX video upscaling model, featuring better detail reconstruction and deblur capability compare to V1.
 - NEW Feature: Added [Presets] for [Custom Resolution] to allow for quick and easy resolution adjustment.

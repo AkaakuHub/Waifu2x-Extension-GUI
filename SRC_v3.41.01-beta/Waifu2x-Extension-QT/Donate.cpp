@@ -19,6 +19,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 /*
 online update for QR Code at donate tab
 */

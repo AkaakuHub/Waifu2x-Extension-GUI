@@ -19,7 +19,8 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "platform_utils.h"
+#include "qt_compat.h"
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -248,7 +249,7 @@ int MainWindow::Force_close()
     KILL_TASK_QStringList(TaskNameList,true);
     //===========
     QProcess Close;
-    Close.start("taskkill /f /t /fi \"imagename eq Waifu2x-Extension-GUI.exe\"");
+    PlatformUtils::killProcess(PlatformUtils::getExecutableName("Waifu2x-Extension-GUI"));
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
     return 0;
@@ -1034,7 +1035,7 @@ void MainWindow::on_pushButton_BrowserFile_clicked()
     if(QFile::exists(Last_browsed_path))
     {
         QSettings *configIniRead = new QSettings(Last_browsed_path, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         BrowserStartPath = configIniRead->value("/Path").toString();
         if(!QFile::exists(BrowserStartPath))BrowserStartPath = "";
     }
@@ -1047,7 +1048,7 @@ void MainWindow::on_pushButton_BrowserFile_clicked()
     //================== 记住上一次浏览的文件夹 =======================
     QFile::remove(Last_browsed_path);
     QSettings *configIniWrite = new QSettings(Last_browsed_path, QSettings::IniFormat);
-    configIniWrite->setIniCodec(QTextCodec::codecForName("UTF-8"));
+    setSettingsCodec(configIniWrite);
     configIniWrite->setValue("/Warning/EN", "Do not modify this file! It may cause the program to crash! If problems occur after the modification, delete this file and restart the program.");
     QFileInfo lastPath(Input_path_List.at(0));
     QString folder_lastPath = file_getFolderPath(lastPath);
@@ -1345,25 +1346,25 @@ void MainWindow::on_pushButton_ForceRetry_clicked()
     ForceRetryCount++;
     //========
     QProcess Close;
-    Close.start("taskkill /f /t /fi \"imagename eq Anime4K_waifu2xEX.exe\"");
+    PlatformUtils::killProcess(ANIME4K_NAME);
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
-    Close.start("taskkill /f /t /fi \"imagename eq waifu2x-ncnn-vulkan_waifu2xEX.exe\"");
+    PlatformUtils::killProcess(WAIFU2X_NCNN_VULKAN_NAME);
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
-    Close.start("taskkill /f /t /fi \"imagename eq waifu2x-ncnn-vulkan-fp16p_waifu2xEX.exe\"");
+    PlatformUtils::killProcess(WAIFU2X_NCNN_VULKAN_FP16P_NAME);
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
-    Close.start("taskkill /f /t /fi \"imagename eq waifu2x-converter-cpp_waifu2xEX.exe\"");
+    PlatformUtils::killProcess(WAIFU2X_CONVERTER_NAME);
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
-    Close.start("taskkill /f /t /fi \"imagename eq srmd-ncnn-vulkan_waifu2xEX.exe\"");
+    PlatformUtils::killProcess(SRMD_NCNN_VULKAN_NAME);
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
-    Close.start("taskkill /f /t /fi \"imagename eq waifu2x-caffe_waifu2xEX.exe\"");
+    PlatformUtils::killProcess(WAIFU2X_CAFFE_NAME);
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
-    Close.start("taskkill /f /t /fi \"imagename eq realsr-ncnn-vulkan_waifu2xEX.exe\"");
+    PlatformUtils::killProcess(REALSR_NCNN_VULKAN_NAME);
     Close.waitForStarted(10000);
     Close.waitForFinished(10000);
     //========
@@ -1583,21 +1584,21 @@ void MainWindow::on_comboBox_version_Waifu2xNCNNVulkan_currentIndexChanged(int i
         case 0:
             {
                 Waifu2x_ncnn_vulkan_FolderPath = Current_Path + "/waifu2x-ncnn-vulkan";
-                Waifu2x_ncnn_vulkan_ProgramPath = Waifu2x_ncnn_vulkan_FolderPath + "/waifu2x-ncnn-vulkan_waifu2xEX.exe";
+                Waifu2x_ncnn_vulkan_ProgramPath = Waifu2x_ncnn_vulkan_FolderPath + "/" + WAIFU2X_NCNN_VULKAN_NAME;
                 ui->checkBox_TTA_vulkan->setEnabled(1);
                 return;
             }
         case 1:
             {
                 Waifu2x_ncnn_vulkan_FolderPath = Current_Path + "/waifu2x-ncnn-vulkan";
-                Waifu2x_ncnn_vulkan_ProgramPath = Waifu2x_ncnn_vulkan_FolderPath + "/waifu2x-ncnn-vulkan-fp16p_waifu2xEX.exe";
+                Waifu2x_ncnn_vulkan_ProgramPath = Waifu2x_ncnn_vulkan_FolderPath + "/" + WAIFU2X_NCNN_VULKAN_FP16P_NAME;
                 ui->checkBox_TTA_vulkan->setEnabled(1);
                 return;
             }
         case 2:
             {
                 Waifu2x_ncnn_vulkan_FolderPath = Current_Path + "/waifu2x-ncnn-vulkan-old";
-                Waifu2x_ncnn_vulkan_ProgramPath = Waifu2x_ncnn_vulkan_FolderPath + "/waifu2x-ncnn-vulkan_waifu2xEX.exe";
+                Waifu2x_ncnn_vulkan_ProgramPath = Waifu2x_ncnn_vulkan_FolderPath + "/" + WAIFU2X_NCNN_VULKAN_NAME;
                 ui->checkBox_TTA_vulkan->setEnabled(0);
                 ui->checkBox_TTA_vulkan->setChecked(0);
                 return;
@@ -2051,7 +2052,16 @@ void MainWindow::on_pushButton_TurnOffScreen_clicked()
 void MainWindow::TurnOffScreen()
 {
     QProcess *OffScreen = new QProcess();
+#ifdef Q_OS_WIN
+    // Windows: Use nircmd
     OffScreen->start("\""+Current_Path+"/nircmd-x64/nircmd.exe\" monitor off");
+#elif defined(Q_OS_MAC)
+    // macOS: Use pmset to turn off display
+    OffScreen->start("pmset", QStringList() << "displaysleepnow");
+#else
+    // Linux: Use xset to turn off display
+    OffScreen->start("xset", QStringList() << "dpms" << "force" << "off");
+#endif
     OffScreen->waitForStarted(5000);
     OffScreen->waitForFinished(5000);
     OffScreen->kill();

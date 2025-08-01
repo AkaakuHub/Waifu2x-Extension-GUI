@@ -19,7 +19,8 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "platform_utils.h"
+#include "qt_compat.h"
 int MainWindow::SRMD_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaChannel)
 {
     //============================= 读取设置 ================================
@@ -105,7 +106,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Image(int rowNum,bool ReProcess_MissingAlphaCha
     //============================== 放大 =======================================
     QProcess *Waifu2x = new QProcess();
     QString Waifu2x_folder_path = Current_Path + "/srmd-ncnn-vulkan";
-    QString program = Waifu2x_folder_path + "/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = Waifu2x_folder_path + "/" + SRMD_NCNN_VULKAN_NAME;
     //==========
     QMap<QString,int> result_map = Calculate_ScaleRatio_SrmdNcnnVulkan(ScaleRatio);
     int ScaleRatio_tmp=result_map["ScaleRatio_tmp"];
@@ -416,7 +417,7 @@ int MainWindow::SRMD_NCNN_Vulkan_GIF(int rowNum)
     //读取配置讯息
     QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = Current_Path + "/srmd-ncnn-vulkan/" + SRMD_NCNN_VULKAN_NAME;
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -632,7 +633,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Video(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -818,7 +819,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Video(int rowNum)
     //读取配置讯息
     QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = Current_Path + "/srmd-ncnn-vulkan/" + SRMD_NCNN_VULKAN_NAME;
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = DenoiseLevel;
     int CountFinishedRounds=0;
@@ -1062,7 +1063,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -1195,7 +1196,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载进度 =========================
         StartTime = configIniRead->value("/Progress/StartTime").toInt();
         isSplitComplete = configIniRead->value("/Progress/isSplitComplete").toBool();
@@ -1365,7 +1366,7 @@ int MainWindow::SRMD_NCNN_Vulkan_Video_BySegment(int rowNum)
             //读取配置讯息
             QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_video_internal->value());
             QProcess *Waifu2x = new QProcess();
-            QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+            QString program = Current_Path + "/srmd-ncnn-vulkan/" + SRMD_NCNN_VULKAN_NAME;
             bool waifu2x_qprocess_failed = false;
             int DenoiseLevel_tmp = DenoiseLevel;
             int CountFinishedRounds=0;
@@ -1615,7 +1616,7 @@ int MainWindow::SRMD_DetectGPU()
     QFile::remove(OutputPath);
     //==============
     QString Waifu2x_folder_path = Current_Path + "/srmd-ncnn-vulkan";
-    QString program = Waifu2x_folder_path + "/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = Waifu2x_folder_path + "/" + SRMD_NCNN_VULKAN_NAME;
     QString model_path = Waifu2x_folder_path+"/models-srmd";
     //=========
     int GPU_ID=-1;
@@ -2179,7 +2180,7 @@ bool MainWindow::APNG_SrmdNCNNVulkan(QString splitFramesFolder,QString scaledFra
     //读取配置讯息
     QString SRMD_NCNN_Vulkan_Settings_str = SrmdNcnnVulkan_ReadSettings_Video_GIF(ui->spinBox_ThreadNum_gif_internal->value());
     QProcess *Waifu2x = new QProcess();
-    QString program = Current_Path + "/srmd-ncnn-vulkan/srmd-ncnn-vulkan_waifu2xEX.exe";
+    QString program = Current_Path + "/srmd-ncnn-vulkan/" + SRMD_NCNN_VULKAN_NAME;
     bool waifu2x_qprocess_failed = false;
     int DenoiseLevel_tmp = ui->spinBox_DenoiseLevel_gif->value();
     int CountFinishedRounds=0;

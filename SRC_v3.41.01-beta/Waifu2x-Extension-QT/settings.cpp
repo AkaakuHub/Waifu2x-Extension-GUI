@@ -19,7 +19,8 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "platform_utils.h"
+#include "qt_compat.h"
 /*
 保存设置
 删除原设置文件,保存设置
@@ -30,7 +31,7 @@ int MainWindow::Settings_Save()
     QFile::remove(settings_ini);
     //=================
     QSettings *configIniWrite = new QSettings(settings_ini, QSettings::IniFormat);
-    configIniWrite->setIniCodec(QTextCodec::codecForName("UTF-8"));
+    setSettingsCodec(configIniWrite);
     //================= 添加警告 =========================
     configIniWrite->setValue("/Warning/.", "Do not modify this file! It may cause the program to crash! If problems occur after the modification, delete this file and restart the program.");
     //==================== 存储版本识别 ==================================
@@ -264,7 +265,7 @@ int MainWindow::Settings_Read_Apply()
     else
     {
         QSettings *configIniRead_ver = new QSettings(settings_ini, QSettings::IniFormat);
-        configIniRead_ver->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead_ver);
         QString Settings_VERSION = configIniRead_ver->value("/settings/VERSION").toString();
         if(Settings_VERSION!=VERSION)
         {
@@ -278,7 +279,7 @@ int MainWindow::Settings_Read_Apply()
     }
     //=================
     QSettings *configIniRead = new QSettings(settings_ini, QSettings::IniFormat);
-    configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+    setSettingsCodec(configIniRead);
     //=================== 加载全局字体设置 =========================
     ui->spinBox_GlobalFontSize->setValue(Settings_Read_value("/settings/GlobalFontSize").toInt());
     ui->fontComboBox_CustFont->setCurrentFont(Settings_Read_value("/settings/CustFont").value<QFont>());
@@ -593,12 +594,12 @@ QVariant MainWindow::Settings_Read_value(QString Key)
     QString settings_ini_old = Current_Path+"/settings_old.ini";
     QString settings_ini_new = Current_Path+"/settings.ini";
     QSettings *configIniRead_new = new QSettings(settings_ini_new, QSettings::IniFormat);
-    configIniRead_new->setIniCodec(QTextCodec::codecForName("UTF-8"));
+    setSettingsCodec(configIniRead_new);
     //====
     if(isReadOldSettings&&QFile::exists(settings_ini_old))
     {
         QSettings *configIniRead_old = new QSettings(settings_ini_old, QSettings::IniFormat);
-        configIniRead_old->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead_old);
         //====
         if(configIniRead_old->value(Key)!=QVariant())
         {

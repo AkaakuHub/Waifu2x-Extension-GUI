@@ -18,7 +18,8 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-/*
+#include "platform_utils.h"
+#include "qt_compat.h"/*
 对视频进行仅插帧(分段)
 */
 int MainWindow::FrameInterpolation_Video_BySegment(int rowNum)
@@ -71,7 +72,7 @@ int MainWindow::FrameInterpolation_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //============ 修正文件夹名称 =============
         QString VideoClipsFolderPath_old = configIniRead->value("/VideoConfiguration/VideoClipsFolderPath").toString();
         QString VideoClipsFolderName_old = configIniRead->value("/VideoConfiguration/VideoClipsFolderName").toString();
@@ -135,7 +136,7 @@ int MainWindow::FrameInterpolation_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载进度 =========================
         StartTime = configIniRead->value("/Progress/StartTime").toInt();
         isSplitComplete = configIniRead->value("/Progress/isSplitComplete").toBool();
@@ -499,17 +500,17 @@ bool MainWindow::FrameInterpolation(QString SourcePath,QString OutputPath)
     {
         case 0:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/rife-ncnn-vulkan/rife-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = Current_Path+"/rife-ncnn-vulkan/rife-ncnn-vulkan_waifu2xEX" EXE_SUFFIX;
                 break;
             }
         case 1:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/cain-ncnn-vulkan/cain-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = Current_Path+"/cain-ncnn-vulkan/cain-ncnn-vulkan_waifu2xEX" EXE_SUFFIX;
                 break;
             }
         case 2:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/dain-ncnn-vulkan/dain-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = Current_Path+"/dain-ncnn-vulkan/dain-ncnn-vulkan_waifu2xEX" EXE_SUFFIX;
                 break;
             }
     }
@@ -851,19 +852,19 @@ int MainWindow::FrameInterpolation_DetectGPU()
     {
         case 0:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/rife-ncnn-vulkan/rife-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = Current_Path+"/rife-ncnn-vulkan/rife-ncnn-vulkan_waifu2xEX" EXE_SUFFIX;
                 FrameInterpolation_ModelPath = Current_Path+"/rife-ncnn-vulkan/rife-v2.4";
                 break;
             }
         case 1:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/cain-ncnn-vulkan/cain-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = Current_Path+"/cain-ncnn-vulkan/cain-ncnn-vulkan_waifu2xEX" EXE_SUFFIX;
                 FrameInterpolation_ModelPath = Current_Path+"/cain-ncnn-vulkan/cain";
                 break;
             }
         case 2:
             {
-                FrameInterpolation_ProgramPath = Current_Path+"/dain-ncnn-vulkan/dain-ncnn-vulkan_waifu2xEX.exe";
+                FrameInterpolation_ProgramPath = Current_Path+"/dain-ncnn-vulkan/dain-ncnn-vulkan_waifu2xEX" EXE_SUFFIX;
                 FrameInterpolation_ModelPath = Current_Path+"/dain-ncnn-vulkan/best";
                 TileSize_qstr = " -t 128 ";
                 break;

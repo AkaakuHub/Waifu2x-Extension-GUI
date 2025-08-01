@@ -35,7 +35,9 @@
 #include <QImageWriter>
 #include <QFile>
 #include <QVariant>
+#ifdef Q_OS_WIN
 #include <windows.h>
+#endif
 #include <QTime>
 #include <QMediaPlayer>
 #include <QDesktopServices>
@@ -49,7 +51,9 @@
 #include <QScreen>
 #include <QCloseEvent>
 #include <QFileDialog>
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QTextCodec>
+#endif
 #include <math.h>
 #include <QMutex>
 #include <QSystemTrayIcon>
@@ -60,6 +64,7 @@
 #include <QThread>
 #include <QThreadPool>
 #include "topsupporterslist.h"
+#include "platform_utils.h"
 
 typedef QList<QMap<QString, QString>> QList_QMap_QStrQStr;
 Q_DECLARE_METATYPE(QList_QMap_QStrQStr)
@@ -201,7 +206,7 @@ public:
     int Anime4k_Video_scale(QMap<QString,QString> Sub_Thread_info,int *Sub_video_ThreadNumRunning,bool *Frame_failed);
     QString Anime4k_ReadSettings(bool PreserveAlphaChannel);
     void DenoiseLevelSpinboxSetting_Anime4k();
-    QString Anime4k_ProgramPath = Current_Path + "/Anime4K/Anime4K_waifu2xEX.exe";
+    QString Anime4k_ProgramPath = Current_Path + "/Anime4K/" + ANIME4K_NAME;
     int Get_NumOfGPU_Anime4k();
     //=================================
     int Waifu2x_Converter_Image(int rowNum,bool ReProcess_MissingAlphaChannel);//Converter放大图片线程

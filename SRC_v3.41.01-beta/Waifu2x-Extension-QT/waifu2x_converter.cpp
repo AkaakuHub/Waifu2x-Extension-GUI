@@ -19,7 +19,8 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "platform_utils.h"
+#include "qt_compat.h"
 int MainWindow::Waifu2x_Converter_Image(int rowNum,bool ReProcess_MissingAlphaChannel)
 {
     //============================= 读取设置 ================================
@@ -102,7 +103,7 @@ int MainWindow::Waifu2x_Converter_Image(int rowNum,bool ReProcess_MissingAlphaCh
     //============================== 放大 =======================================
     QString Denoise_cmd = " --noise-level " + QString::number(DenoiseLevel, 10);
     //====
-    QString cmd = "\"" + Current_Path + "/waifu2x-converter/waifu2x-converter-cpp_waifu2xEX.exe" + "\"" + " -i " + "\"" + SourceFile_fullPath + "\"" + " -o " + "\"" + OutPut_Path + "\"" + " --scale-ratio " + QString::number(ScaleRatio, 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
+    QString cmd = "\"" + Current_Path + "/waifu2x-converter/" + WAIFU2X_CONVERTER_NAME + "\"" + " -i " + "\"" + SourceFile_fullPath + "\"" + " -o " + "\"" + OutPut_Path + "\"" + " --scale-ratio " + QString::number(ScaleRatio, 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
     //========
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
     {
@@ -502,7 +503,7 @@ int MainWindow::Waifu2x_Converter_GIF_scale(QMap<QString, QString> Sub_Thread_in
     }
     int OutPutFilesFullPathList_size = OutPutFilesFullPathList.size();
     //=======
-    QString cmd = "\"" + Current_Path + "/waifu2x-converter/waifu2x-converter-cpp_waifu2xEX.exe" + "\"" + " -a 0 -r 0 -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " --scale-ratio " + QString::number(Sub_Thread_info["ScaleRatio"].toInt(), 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
+    QString cmd = "\"" + Current_Path + "/waifu2x-converter/" + WAIFU2X_CONVERTER_NAME + "\"" + " -a 0 -r 0 -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " --scale-ratio " + QString::number(Sub_Thread_info["ScaleRatio"].toInt(), 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
     QProcess *Waifu2x = new QProcess();
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
@@ -618,7 +619,7 @@ int MainWindow::Waifu2x_Converter_Video(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -1011,7 +1012,7 @@ int MainWindow::Waifu2x_Converter_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -1144,7 +1145,7 @@ int MainWindow::Waifu2x_Converter_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载进度 =========================
         StartTime = configIniRead->value("/Progress/StartTime").toInt();
         isSplitComplete = configIniRead->value("/Progress/isSplitComplete").toBool();
@@ -1505,7 +1506,7 @@ int MainWindow::Waifu2x_Converter_Video_scale(QMap<QString,QString> Sub_Thread_i
     }
     int OutPutFilesFullPathList_size = OutPutFilesFullPathList.size();
     //=======
-    QString cmd = "\"" + Current_Path + "/waifu2x-converter/waifu2x-converter-cpp_waifu2xEX.exe" + "\"" + " -a 0 -r 0 -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " --scale-ratio " + QString::number(Sub_Thread_info["ScaleRatio"].toInt(), 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
+    QString cmd = "\"" + Current_Path + "/waifu2x-converter/" + WAIFU2X_CONVERTER_NAME + "\"" + " -a 0 -r 0 -i " + "\"" + SplitFramesFolderPath + "\"" + " -o " + "\"" + ScaledFramesFolderPath + "\"" + " --scale-ratio " + QString::number(Sub_Thread_info["ScaleRatio"].toInt(), 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
     QProcess *Waifu2x = new QProcess();
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)
@@ -1610,7 +1611,7 @@ int MainWindow::Waifu2x_DumpProcessorList_converter()
     Core_num = 0;
     emit Send_TextBrowser_NewMessage(tr("Detecting available Processor, please wait."));
     QString Waifu2x_folder_path = Current_Path + "/waifu2x-converter";
-    QString program = Waifu2x_folder_path + "/waifu2x-converter-cpp_waifu2xEX.exe";
+    QString program = Waifu2x_folder_path + "/" + WAIFU2X_CONVERTER_NAME;
     QProcess *Waifu2x = new QProcess();
     QString cmd = "\"" + program + "\"" + " -l ";
     Waifu2x->start(cmd);
@@ -2088,7 +2089,7 @@ int MainWindow::Waifu2x_Converter_APNG_scale(QMap<QString, QString> Sub_Thread_i
     }
     int OutPutFilesFullPathList_size = OutPutFilesFullPathList.size();
     //=======
-    QString cmd = "\"" + Current_Path + "/waifu2x-converter/waifu2x-converter-cpp_waifu2xEX.exe" + "\"" + " -a 0 -r 0 -i " + "\"" + splitFramesFolder + "\"" + " -o " + "\"" + scaledFramesFolder + "\"" + " --scale-ratio " + QString::number(Sub_Thread_info["ScaleRatio"].toInt(), 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
+    QString cmd = "\"" + Current_Path + "/waifu2x-converter/" + WAIFU2X_CONVERTER_NAME + "\"" + " -a 0 -r 0 -i " + "\"" + splitFramesFolder + "\"" + " -o " + "\"" + scaledFramesFolder + "\"" + " --scale-ratio " + QString::number(Sub_Thread_info["ScaleRatio"].toInt(), 10) + Denoise_cmd + Waifu2xConverter_ReadSettings();
     QProcess *Waifu2x = new QProcess();
     //=======
     for(int retry=0; retry<(ui->spinBox_retry->value()+ForceRetryCount); retry++)

@@ -18,6 +18,7 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 /*
 多线程调整文件夹内图片大小
 */
@@ -123,7 +124,7 @@ bool MainWindow::Image_Gif_AutoSkip_CustRes(int rowNum,bool isGif)
 */
 QMap<QString,int> MainWindow::Image_Gif_Read_Resolution(QString SourceFileFullPath)
 {
-    QString program = Current_Path+"/identify_waifu2xEX.exe";
+    QString program = Current_Path+"/identify_waifu2xEX" EXE_SUFFIX;
     QProcess QProcess_Read_Resolution;
     QProcess_Read_Resolution.start("\""+program+"\" -format \"%w:%h;success;\" \""+SourceFileFullPath+"\"");
     while(!QProcess_Read_Resolution.waitForStarted(100)&&!QProcess_stop) {}
@@ -228,7 +229,7 @@ QString MainWindow::SaveImageAs_FormatAndQuality(QString OriginalSourceImage_ful
     //============ 组装完整路径 ==============
     FinalFile_FullPath = FinalFile_Folder+"/"+FinalFile_FullName;
     //==========================
-    QString program = Current_Path+"/convert_waifu2xEX.exe";
+    QString program = Current_Path+"/convert_waifu2xEX" EXE_SUFFIX;
     QFile::remove(FinalFile_FullPath);
     QProcess SaveImageAs_QProcess;
     SaveImageAs_QProcess.start("\""+program+"\" \""+ScaledImage_fullPath+"\" -quality "+QString::number(ImageQualityLevel,10)+" \""+FinalFile_FullPath+"\"");
@@ -296,7 +297,7 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
         QString OutPut_Path_WebpCache = file_Folder + "/" + file_name + "_W2xEX_temp.webp";//输出的webp缓存的完整路径
         QString OutPut_Path_FinalPNG = file_Folder + "/" + file_name + "_W2xEX_PPAC.png";//输出的png图片的完整路径
         //======
-        QString program = Current_Path+"/convert_waifu2xEX.exe";
+        QString program = Current_Path+"/convert_waifu2xEX" EXE_SUFFIX;
         QFile::remove(OutPut_Path_FinalPNG);
         QProcess Convert2PNG;
         //先转换到质量99的webp
@@ -330,7 +331,7 @@ QString MainWindow::Imgae_PreProcess(QString ImagePath,bool ReProcess_AlphaChann
     QString file_Folder = file_getFolderPath(fileinfo_ImagePath);
     QString OutPut_Path = file_Folder + "/" + file_name + "_W2xEX_"+file_ext_ImagePath+".png";//输出的png图片的完整路径
     //======
-    QString program = Current_Path+"/convert_waifu2xEX.exe";
+    QString program = Current_Path+"/convert_waifu2xEX" EXE_SUFFIX;
     QFile::remove(OutPut_Path);
     QProcess Convert2PNG;
     Convert2PNG.start("\""+program+"\" \""+ImagePath+"\" \""+OutPut_Path+"\"");

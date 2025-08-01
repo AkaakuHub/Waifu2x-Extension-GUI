@@ -18,6 +18,7 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 
 //====== 自动关机===================================================================================
 /*
@@ -36,12 +37,12 @@ int MainWindow::SystemShutDown_Countdown()
             }
         case 2:
             {
-                QProcess::execute(Current_Path+"/nircmd-x64/nircmd.exe standby");
+                PlatformUtils::systemSleep();
                 break;
             }
         case 3:
             {
-                QProcess::execute(Current_Path+"/nircmd-x64/nircmd.exe hibernate");
+                PlatformUtils::systemHibernate();
                 break;
             }
     }
@@ -64,6 +65,7 @@ bool MainWindow::SystemShutDown()
         stream << "Don't delete this file!!";
     }
     //================
+#ifdef Q_OS_WIN
     HANDLE hToken;
     TOKEN_PRIVILEGES tkp;
     //获取进程标志
@@ -94,6 +96,27 @@ bool MainWindow::SystemShutDown()
                 return true;
             }
     }
+#else
+    switch(ui->comboBox_FinishAction->currentIndex())
+    {
+        case 1://关机
+            {
+#ifdef Q_OS_MAC
+                return QProcess::execute("osascript -e 'tell app \"System Events\" to shut down'") == 0;
+#else // Linux
+                return QProcess::execute("systemctl poweroff") == 0;
+#endif
+            }
+        case 4://重启
+            {
+#ifdef Q_OS_MAC
+                return QProcess::execute("osascript -e 'tell app \"System Events\" to restart'") == 0;
+#else // Linux
+                return QProcess::execute("systemctl reboot") == 0;
+#endif
+            }
+    }
+#endif
     return false;
 }
 /*

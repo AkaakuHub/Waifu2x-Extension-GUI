@@ -19,6 +19,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 /*
 开始处理文件的按钮
 */
@@ -770,10 +771,10 @@ void MainWindow::Waifu2x_Finished_manual()
     isSuccessiveFailuresDetected_VFI=false;
     //================= 杀死卡死在后台的进程 =================
     QStringList TaskNameList;
-    TaskNameList << "convert_waifu2xEX.exe"<<"ffmpeg_waifu2xEX.exe"<<"ffprobe_waifu2xEX.exe"<<"identify_waifu2xEX.exe"<<"gifsicle_waifu2xEX.exe"<<"waifu2x-ncnn-vulkan_waifu2xEX.exe"
-                 <<"waifu2x-ncnn-vulkan-fp16p_waifu2xEX.exe"<<"Anime4K_waifu2xEX.exe"<<"waifu2x-caffe_waifu2xEX.exe"<<"srmd-ncnn-vulkan_waifu2xEX.exe"<<"realsr-ncnn-vulkan_waifu2xEX.exe"
-                 <<"waifu2x-converter-cpp_waifu2xEX.exe"<<"sox_waifu2xEX.exe"<<"rife-ncnn-vulkan_waifu2xEX.exe"<<"cain-ncnn-vulkan_waifu2xEX.exe"<<"dain-ncnn-vulkan_waifu2xEX.exe"
-                 <<"srmd-cuda_waifu2xEX.exe"<<"apngdis_waifu2xEX.exe"<<"apngasm_waifu2xEX.exe";
+    TaskNameList << CONVERT_NAME << FFMPEG_NAME << FFPROBE_NAME << IDENTIFY_NAME << GIFSICLE_NAME << WAIFU2X_NCNN_VULKAN_NAME
+                 << WAIFU2X_NCNN_VULKAN_FP16P_NAME << ANIME4K_NAME << WAIFU2X_CAFFE_NAME << SRMD_NCNN_VULKAN_NAME << REALSR_NCNN_VULKAN_NAME
+                 << WAIFU2X_CONVERTER_NAME << SOX_NAME << RIFE_NCNN_VULKAN_NAME << CAIN_NCNN_VULKAN_NAME << DAIN_NCNN_VULKAN_NAME
+                 << SRMD_CUDA_NAME << APNGDIS_NAME << APNGASM_NAME;
     KILL_TASK_QStringList(TaskNameList,true);
     //================= 生成处理报告 =================
     ShowFileProcessSummary();
@@ -1141,7 +1142,11 @@ bool MainWindow::KILL_TASK_(QString TaskName,bool RequestAdmin)
     if(TaskName=="")return false;
     //===============
     QProcess Get_tasklist;
+#ifdef Q_OS_WIN
     Get_tasklist.start("tasklist /fo csv");
+#else
+    Get_tasklist.start("ps -eo comm");
+#endif
     while(!Get_tasklist.waitForStarted(500)) {}
     while(!Get_tasklist.waitForFinished(500)) {}
     if(Get_tasklist.readAllStandardOutput().contains(TaskName.toUtf8())==false)
@@ -1149,16 +1154,17 @@ bool MainWindow::KILL_TASK_(QString TaskName,bool RequestAdmin)
         return true;
     }
     //===============
-    QProcess Close;
-    Close.start("taskkill /f /t /fi \"imagename eq "+TaskName+"\"");
-    while(!Close.waitForStarted(500)) {}
-    while(!Close.waitForFinished(500)) {}
+    PlatformUtils::killProcess(TaskName);
+#ifdef Q_OS_WIN
     Get_tasklist.start("tasklist /fo csv");
+#else
+    Get_tasklist.start("ps -eo comm");
+#endif
     while(!Get_tasklist.waitForStarted(500)) {}
     while(!Get_tasklist.waitForFinished(500)) {}
     if(Get_tasklist.readAllStandardOutput().contains(TaskName.toUtf8()) && RequestAdmin==true)
     {
-        ExecuteCMD_batFile("taskkill /f /t /fi \"imagename eq "+TaskName+"\"",true);
+        PlatformUtils::killProcess(TaskName);
         return true;
     }
     return true;
@@ -1172,7 +1178,11 @@ bool MainWindow::KILL_TASK_QStringList(QStringList TaskNameList,bool RequestAdmi
     if(TaskNameList.isEmpty())return false;
     //===============
     QProcess Get_tasklist;
+#ifdef Q_OS_WIN
     Get_tasklist.start("tasklist /fo csv");
+#else
+    Get_tasklist.start("ps -eo comm");
+#endif
     while(!Get_tasklist.waitForStarted(500)) {}
     while(!Get_tasklist.waitForFinished(500)) {}
     QString RunningTaskList = Get_tasklist.readAllStandardOutput();
@@ -1190,16 +1200,10 @@ bool MainWindow::KILL_TASK_QStringList(QStringList TaskNameList,bool RequestAdmi
     }
     if(TaskNameList_tmp.isEmpty())return true;
     //===============
-    QString CMD_commands = "";
     for(int i=0; i<TaskNameList_tmp.size(); i++)
     {
-        CMD_commands.append("taskkill /f /t /fi \"imagename eq "+TaskNameList_tmp.at(i)+"\"\n");
+        PlatformUtils::killProcess(TaskNameList_tmp.at(i));
     }
-    if(RequestAdmin==true)
-    {
-        emit Send_TextBrowser_NewMessage(tr("Please grant administrator permissions to kill sub processes stuck in the background."));
-    }
-    ExecuteCMD_batFile(CMD_commands,RequestAdmin);
     //===============
     return true;
 }

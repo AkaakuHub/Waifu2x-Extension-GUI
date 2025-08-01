@@ -1,5 +1,6 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -86,11 +87,27 @@ void MainWindow::RUN_SLOT()
     {
         ui->label_status->setText("Please grant administrator rights to\n"
                                   "ensure the normal operation of the software.");
+#ifdef Q_OS_WIN
         ShellExecuteW(NULL, QString("runas").toStdWString().c_str(), QString(Current_Path+"/Waifu2x-Extension-GUI.exe").toStdWString().c_str(), QString(Current_Path+"/Waifu2x-Extension-GUI.exe").toStdWString().c_str(), NULL, 1);
+#else
+        QStringList args;
+#ifdef Q_OS_MAC
+        args << "-e" << "do shell script \"" + Current_Path + "/Waifu2x-Extension-GUI\" with administrator privileges";
+        QProcess::execute("osascript", args);
+#else // Linux
+        args << Current_Path + "/Waifu2x-Extension-GUI";
+        QProcess::execute("pkexec", args);
+#endif
+#endif
         this->close();
         return;
     }
+#ifdef Q_OS_WIN
     ShellExecuteW(NULL, QString("open").toStdWString().c_str(), QString(Current_Path+"/Waifu2x-Extension-GUI.exe").toStdWString().c_str(), NULL, NULL, 1);
+#else
+    QString executable = Current_Path + "/Waifu2x-Extension-GUI";
+    QProcess::startDetached(executable);
+#endif
     this->close();
     return;
 }

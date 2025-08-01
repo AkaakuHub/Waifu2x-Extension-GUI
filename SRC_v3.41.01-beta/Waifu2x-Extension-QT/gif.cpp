@@ -19,6 +19,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 /*
 根据行数从自定义分辨率列表移除gif文件
 */
@@ -68,7 +69,7 @@ int MainWindow::Gif_getDuration(QString gifPath)
 {
     //========================= 调用ffprobe读取GIF信息 ======================
     QProcess *Get_GifAvgFPS_process = new QProcess();
-    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+gifPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+gifPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_GifAvgFPS_process->start(cmd);
     while(!Get_GifAvgFPS_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_GifAvgFPS_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -148,7 +149,7 @@ void MainWindow::Gif_splitGif(QString gifPath,QString SplitFramesFolderPath)
     file_DelDir(SplitFramesFolderPath);
     file_mkDir(SplitFramesFolderPath);
     //开始用convert处理
-    QString program = Current_Path+"/convert_waifu2xEX.exe";
+    QString program = Current_Path+"/convert_waifu2xEX" EXE_SUFFIX;
     QString cmd = "\"" + program + "\"" + " -coalesce " + "\"" + gifPath + "\"" + " " + "\"" + SplitFramesFolderPath + "/%0"+QString::number(FrameDigits,10)+"d.png\"";
     QProcess *SplitGIF=new QProcess();
     SplitGIF->start(cmd);
@@ -172,7 +173,7 @@ void MainWindow::Gif_assembleGif(QString ResGifPath,QString ScaledFramesPath,int
     emit Send_TextBrowser_NewMessage(tr("Start to assemble GIF:[")+ResGifPath+"]");
     //===============================
     QString resize_cmd ="";
-    QString program = Current_Path+"/convert_waifu2xEX.exe";
+    QString program = Current_Path+"/convert_waifu2xEX" EXE_SUFFIX;
     if(ui->checkBox_DisableResize_gif->isChecked()==false)
     {
         if(CustRes_isEnabled || isOverScaled)
@@ -280,7 +281,7 @@ QString MainWindow::Gif_compressGif(QString gifPath,QString gifPath_compressd)
 {
     emit Send_TextBrowser_NewMessage(tr("Starting to optimize GIF:[")+gifPath+"]");
     //=====
-    QString program = Current_Path+"/gifsicle_waifu2xEX.exe";
+    QString program = Current_Path+"/gifsicle_waifu2xEX" EXE_SUFFIX;
     QString cmd = "\"" + program + "\"" + " -O3 -i \""+gifPath+"\" -o \""+gifPath_compressd+"\"";
     QProcess *CompressGIF=new QProcess();
     CompressGIF->start(cmd);

@@ -36,7 +36,7 @@ TopSupportersList::TopSupportersList(QWidget *parent) :
     if(QFile::exists(TopSupportersList_ini_path) == true)
     {
         QSettings *configIniRead = new QSettings(TopSupportersList_ini_path, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         QString Change_log = configIniRead->value("/TopSupportersList/List").toString();
         if(configIniRead->value("/TopSupportersList/List") != QVariant() && Change_log.trimmed()!="")
         {

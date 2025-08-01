@@ -19,6 +19,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 
 void MainWindow::dragEnterEvent(QDragEnterEvent *event)
 {
@@ -458,6 +459,7 @@ void MainWindow::file_MoveToTrash( QString file )
     QFileInfo fileinfo( file );
     if( !fileinfo.exists() )
         return;
+#ifdef Q_OS_WIN
     WCHAR from[ MAX_PATH ];
     memset( from, 0, sizeof( from ));
     int l = fileinfo.absoluteFilePath().toWCharArray( from );
@@ -473,6 +475,13 @@ void MainWindow::file_MoveToTrash( QString file )
     {
         return;
     }
+#elif defined(Q_OS_MAC)
+    QProcess::execute(QString("osascript -e \"tell application \\\"Finder\\\" to delete POSIX file \\\"%1\\\"\"").arg(fileinfo.absoluteFilePath()));
+#else // Linux
+    QString trashPath = QDir::homePath() + "/.local/share/Trash/files/";
+    QDir().mkpath(trashPath);
+    QFile::rename(fileinfo.absoluteFilePath(), trashPath + fileinfo.fileName());
+#endif
 }
 
 /*
@@ -575,8 +584,7 @@ bool MainWindow::file_OpenFolder(QString FolderPath)
 {
     if(file_isDirExist(FolderPath))
     {
-        FolderPath= FolderPath.replace("/","\\");
-        QProcess::execute("explorer \""+FolderPath+"\"");
+        PlatformUtils::openFolder(FolderPath);
         return true;
     }
     else

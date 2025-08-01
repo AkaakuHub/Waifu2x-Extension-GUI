@@ -22,7 +22,8 @@ SOURCES += \
     mainwindow.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    platform_utils.h
 
 FORMS += \
     mainwindow.ui
@@ -37,4 +38,17 @@ RESOURCES += \
 
 TARGET = Waifu2x-Extension-GUI-Launcher
 
-RC_ICONS =icon/icon.ico
+# Platform-specific configurations
+win32 {
+    RC_ICONS = icon/icon.ico
+}
+
+unix:!macx {
+    # Linux-specific settings
+    ICON = icon/icon_main.png
+}
+
+macx {
+    # macOS-specific settings
+    ICON = icon/icon_main.icns
+}

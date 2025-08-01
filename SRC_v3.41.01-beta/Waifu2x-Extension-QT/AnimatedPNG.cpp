@@ -18,6 +18,7 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 /*
 处理apng的主函数
 */
@@ -266,7 +267,7 @@ void MainWindow::APNG_Split2Frames(QString sourceFileFullPath,QString splitFrame
     QString splitCopy = splitFramesFolder+"/W2xEX_"+sourceFileFullPath_baseName+".apng";
     QFile::copy(sourceFileFullPath,splitCopy);
     //========================
-    QString program = Current_Path+"/apngdis_waifu2xEX.exe";
+    QString program = Current_Path+"/apngdis_waifu2xEX" EXE_SUFFIX;
     QString cmd = "\""+program+"\" \""+splitCopy+"\" \"0\"";
     QProcess *SplitAPNG=new QProcess();
     SplitAPNG->start(cmd);
@@ -319,7 +320,7 @@ void MainWindow::APNG_Frames2APNG(QString sourceFileFullPath,QString scaledFrame
     }
     //========================= 调用ffprobe读取APNG信息 ======================
     QProcess *Get_APNGAvgFPS_process = new QProcess();
-    QString cmd_Get_APNGAvgFPS_process = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+sourceFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd_Get_APNGAvgFPS_process = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+sourceFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_APNGAvgFPS_process->start(cmd_Get_APNGAvgFPS_process);
     while(!Get_APNGAvgFPS_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_APNGAvgFPS_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -379,7 +380,7 @@ void MainWindow::APNG_Frames2APNG(QString sourceFileFullPath,QString scaledFrame
     //删除已经存在的result文件
     QFile::remove(resultFileFullPath);
     //========================
-    QString program = Current_Path+"/apngasm_waifu2xEX.exe";
+    QString program = Current_Path+"/apngasm_waifu2xEX" EXE_SUFFIX;
     QString cmd ="\""+program+"\" \""+resultFileFullPath+"\" \""+scaledFramesFolder.replace("%","%%")+"/*.png\" -kp -kc -z1 1 "+QString::number(fps,10)+" -l0";
     QProcess *AssembleAPNG=new QProcess();
     AssembleAPNG->start(cmd);
@@ -404,7 +405,7 @@ bool MainWindow::APNG_isAnimatedPNG(int rowNum)
     QString sourceFileFullPath = Table_model_image->item(rowNum,2)->text();
     //========================= 调用ffprobe读取APNG信息 ======================
     QProcess *Get_APNGAvgFPS_process = new QProcess();
-    QString cmd_Get_APNGAvgFPS_process = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+sourceFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd_Get_APNGAvgFPS_process = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+sourceFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_APNGAvgFPS_process->start(cmd_Get_APNGAvgFPS_process);
     while(!Get_APNGAvgFPS_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_APNGAvgFPS_process->waitForFinished(100)&&!QProcess_stop) {}

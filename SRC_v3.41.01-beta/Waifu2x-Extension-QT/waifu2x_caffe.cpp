@@ -19,7 +19,8 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-
+#include "platform_utils.h"
+#include "qt_compat.h"
 int MainWindow::Waifu2x_Caffe_Image(int rowNum,bool ReProcess_MissingAlphaChannel)
 {
     //============================= 读取设置 ================================
@@ -101,7 +102,7 @@ int MainWindow::Waifu2x_Caffe_Image(int rowNum,bool ReProcess_MissingAlphaChanne
     QString OutPut_Path = file_path + "/" + file_name + "_waifu2x_"+QString::number(ScaleRatio, 10)+"x_"+QString::number(DenoiseLevel, 10)+"n_"+file_ext+".png";
     //============================== 放大 =======================================
     QString Waifu2x_folder_path = Current_Path + "/waifu2x-caffe";
-    QString program = Waifu2x_folder_path + "/waifu2x-caffe_waifu2xEX.exe";
+    QString program = Waifu2x_folder_path + "/" + WAIFU2X_CAFFE_NAME;
     //====
     QString ImageProcessingModeCMD = "";
     if(DenoiseLevel==-1)
@@ -508,7 +509,7 @@ int MainWindow::Waifu2x_Caffe_GIF_scale(QMap<QString, QString> Sub_Thread_info,i
     int ScaleRatio = Sub_Thread_info["ScaleRatio"].toInt();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_gif->value();
     //===========
-    QString program = Current_Path + "/waifu2x-caffe/waifu2x-caffe_waifu2xEX.exe";
+    QString program = Current_Path + "/waifu2x-caffe/" + WAIFU2X_CAFFE_NAME;
     //====
     QString ImageProcessingModeCMD = "";
     if(DenoiseLevel==-1)
@@ -654,7 +655,7 @@ int MainWindow::Waifu2x_Caffe_Video(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -1038,7 +1039,7 @@ int MainWindow::Waifu2x_Caffe_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载之前存储的视频信息 =========================
         int ScaleRatio_old = configIniRead->value("/VideoConfiguration/ScaleRatio").toInt();
         int DenoiseLevel_old = configIniRead->value("/VideoConfiguration/DenoiseLevel").toInt();
@@ -1171,7 +1172,7 @@ int MainWindow::Waifu2x_Caffe_Video_BySegment(int rowNum)
     if(QFile::exists(VideoConfiguration_fullPath))
     {
         QSettings *configIniRead = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-        configIniRead->setIniCodec(QTextCodec::codecForName("UTF-8"));
+        setSettingsCodec(configIniRead);
         //=================== 加载进度 =========================
         StartTime = configIniRead->value("/Progress/StartTime").toInt();
         isSplitComplete = configIniRead->value("/Progress/isSplitComplete").toBool();
@@ -1517,7 +1518,7 @@ int MainWindow::Waifu2x_Caffe_Video_scale(QMap<QString,QString> Sub_Thread_info,
     int ScaleRatio = Sub_Thread_info["ScaleRatio"].toInt();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_video->value();
     //===========
-    QString program = Current_Path + "/waifu2x-caffe/waifu2x-caffe_waifu2xEX.exe";
+    QString program = Current_Path + "/waifu2x-caffe/" + WAIFU2X_CAFFE_NAME;
     //====
     QString ImageProcessingModeCMD = "";
     if(DenoiseLevel==-1)
@@ -2072,7 +2073,7 @@ int MainWindow::Waifu2x_Caffe_APNG_scale(QMap<QString, QString> Sub_Thread_info,
     int ScaleRatio = Sub_Thread_info["ScaleRatio"].toInt();
     int DenoiseLevel = ui->spinBox_DenoiseLevel_gif->value();
     //===========
-    QString program = Current_Path + "/waifu2x-caffe/waifu2x-caffe_waifu2xEX.exe";
+    QString program = Current_Path + "/waifu2x-caffe/" + WAIFU2X_CAFFE_NAME;
     //====
     QString ImageProcessingModeCMD = "";
     if(DenoiseLevel==-1)

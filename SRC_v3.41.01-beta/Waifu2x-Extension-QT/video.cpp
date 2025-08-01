@@ -18,7 +18,8 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-/*
+#include "platform_utils.h"
+#include "qt_compat.h"/*
 根据行数从自定义分辨率列表移除视频文件
 */
 void MainWindow::video_RemoveFromCustResList(int RowNumber)
@@ -76,7 +77,7 @@ bool MainWindow::video_isVFR(QString videoPath)
 {
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *Get_VideoFPS_process = new QProcess();
-    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_VideoFPS_process->start(cmd);
     while(!Get_VideoFPS_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_VideoFPS_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -167,7 +168,7 @@ QMap<QString,int> MainWindow::video_get_Resolution(QString VideoFileFullPath)
     emit Send_TextBrowser_NewMessage(tr("Get resolution of the video:[")+VideoFileFullPath+"]");
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *Get_resolution_process = new QProcess();
-    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+VideoFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+VideoFileFullPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_resolution_process->start(cmd);
     while(!Get_resolution_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_resolution_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -307,7 +308,7 @@ void MainWindow::video_AssembleVideoClips(QString VideoClipsFolderPath,QString V
     /*
     组装视频
     */
-    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX.exe";
+    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX" EXE_SUFFIX;
     bool Del_DenoisedAudio = false;
     //=============== 音频降噪 ========================
     if((ui->checkBox_AudioDenoise->isChecked())&&QFile::exists(AudioPath))
@@ -416,7 +417,7 @@ void MainWindow::video_video2images_ProcessBySegment(QString VideoPath,QString F
 {
     emit Send_TextBrowser_NewMessage(tr("Start splitting video: [")+VideoPath+"]");
     //=================
-    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX.exe";
+    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX" EXE_SUFFIX;
     QString video_mp4_fullpath = VideoPath;
     //================ 获取fps =====================
     QString fps_video_cmd=" ";
@@ -488,7 +489,7 @@ void MainWindow::video_get_audio(QString VideoPath,QString AudioPath)
 {
     emit Send_TextBrowser_NewMessage(tr("Extract audio from video: [")+VideoPath+"]");
     //==============================================
-    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX.exe";
+    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX" EXE_SUFFIX;
     QFile::remove(AudioPath);
     QProcess video_splitSound;
     video_splitSound.start("\""+ffmpeg_path+"\" -y -i \""+VideoPath+"\" \""+AudioPath+"\"");
@@ -530,7 +531,7 @@ QString MainWindow::video_To_CFRMp4(QString VideoPath)
     QFile::remove(video_mp4_fullpath);
     //=================
     emit Send_TextBrowser_NewMessage(tr("Start converting video: [")+VideoPath+tr("] to CFR MP4."));
-    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX.exe";
+    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX" EXE_SUFFIX;
     QString vcodec_copy_cmd = "";
     QString acodec_copy_cmd = "";
     QString bitrate_vid_cmd = "";
@@ -596,7 +597,7 @@ int MainWindow::video_get_duration(QString videoPath)
     emit Send_TextBrowser_NewMessage(tr("Get duration of the video:[")+videoPath+"]");
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *Get_Duration_process = new QProcess();
-    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_Duration_process->start(cmd);
     while(!Get_Duration_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_Duration_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -654,7 +655,7 @@ QString MainWindow::video_AudioDenoise(QString OriginalAudioPath)
     QString file_ext = fileinfo.suffix();
     QString file_path = file_getFolderPath(fileinfo);
     //================
-    QString program = Current_Path+"/SoX/sox_waifu2xEX.exe";
+    QString program = Current_Path+"/SoX/sox_waifu2xEX" EXE_SUFFIX;
     QString DenoiseProfile = file_path+"/"+file_name+"_DenoiseProfile.dp";
     QString DenoisedAudio = file_path+"/"+file_name+"_Denoised."+file_ext;
     double DenoiseLevel = ui->doubleSpinBox_AudioDenoiseLevel->value();
@@ -686,7 +687,7 @@ QString MainWindow::video_AudioDenoise(QString OriginalAudioPath)
 void MainWindow::video_write_Progress_ProcessBySegment(QString VideoConfiguration_fullPath,int StartTime,bool isSplitComplete,bool isScaleComplete,int OLDSegmentDuration,int LastVideoClipNo)
 {
     QSettings *configIniWrite = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-    configIniWrite->setIniCodec(QTextCodec::codecForName("UTF-8"));
+    setSettingsCodec(configIniWrite);
     //==================== 存储进度 ==================================
     configIniWrite->setValue("/Progress/StartTime", StartTime);
     configIniWrite->setValue("/Progress/isSplitComplete", isSplitComplete);
@@ -700,7 +701,7 @@ void MainWindow::video_write_Progress_ProcessBySegment(QString VideoConfiguratio
 void MainWindow::video_write_VideoConfiguration(QString VideoConfiguration_fullPath,int ScaleRatio,int DenoiseLevel,bool CustRes_isEnabled,int CustRes_height,int CustRes_width,QString EngineName,bool isProcessBySegment,QString VideoClipsFolderPath,QString VideoClipsFolderName,bool isVideoFrameInterpolationEnabled,int MultipleOfFPS)
 {
     QSettings *configIniWrite = new QSettings(VideoConfiguration_fullPath, QSettings::IniFormat);
-    configIniWrite->setIniCodec(QTextCodec::codecForName("UTF-8"));
+    setSettingsCodec(configIniWrite);
     //================= 添加警告 =========================
     configIniWrite->setValue("/Warning/EN", "Do not modify this file! It may cause the program to crash! If problems occur after the modification, delete this file and restart the program.");
     //==================== 存储视频信息 ==================================
@@ -827,7 +828,7 @@ QString MainWindow::video_get_bitrate(QString videoPath,bool isReturnFullCMD,boo
     emit Send_TextBrowser_NewMessage(tr("Get bitrate of the video:[")+videoPath+"]");
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *Get_Bitrate_process = new QProcess();
-    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_Bitrate_process->start(cmd);
     while(!Get_Bitrate_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_Bitrate_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -901,7 +902,7 @@ QString MainWindow::video_get_fps(QString videoPath)
 {
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *Get_VideoFPS_process = new QProcess();
-    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_VideoFPS_process->start(cmd);
     while(!Get_VideoFPS_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_VideoFPS_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -959,7 +960,7 @@ int MainWindow::video_get_frameNum(QString videoPath)
 {
     //========================= 调用ffprobe读取视频信息 ======================
     QProcess *Get_VideoFrameNumDigits_process = new QProcess();
-    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX.exe\" -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
+    QString cmd = "\""+Current_Path+"/ffprobe_waifu2xEX" EXE_SUFFIX " -i \""+videoPath+"\" -select_streams v -show_streams -v quiet -print_format ini -show_format";
     Get_VideoFrameNumDigits_process->start(cmd);
     while(!Get_VideoFrameNumDigits_process->waitForStarted(100)&&!QProcess_stop) {}
     while(!Get_VideoFrameNumDigits_process->waitForFinished(100)&&!QProcess_stop) {}
@@ -1011,7 +1012,7 @@ void MainWindow::video_video2images(QString VideoPath,QString FrameFolderPath,QS
 {
     emit Send_TextBrowser_NewMessage(tr("Start splitting video: [")+VideoPath+"]");
     //=================
-    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX.exe";
+    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX" EXE_SUFFIX;
     //================ 获取fps =====================
     QString fps_video_cmd=" ";
     QString fps = video_get_fps(VideoPath).trimmed();
@@ -1153,7 +1154,7 @@ int MainWindow::video_images2video(QString VideoPath,QString video_mp4_scaled_fu
             }
         }
     }
-    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX.exe";
+    QString ffmpeg_path = Current_Path+"/ffmpeg_waifu2xEX" EXE_SUFFIX;
     int FrameNumDigits = video_get_frameNumDigits(VideoPath);
     if(FrameNumDigits==0)return 0;
     QFileInfo vfinfo(VideoPath);

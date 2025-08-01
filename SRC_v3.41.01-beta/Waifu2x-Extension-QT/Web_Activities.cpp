@@ -18,6 +18,7 @@
 */
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "platform_utils.h"
 
 /*
 从网络下载文件到本地
@@ -26,7 +27,7 @@ bool MainWindow::DownloadTo(QString OnlineLink,QString LocalPath)
 {
     QFile::remove(LocalPath);
     QString user_agent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.96 Safari/537.36";
-    QString program = Current_Path+"/wget_waifu2xEX.exe";
+    QString program = Current_Path+"/" + WGET_NAME;
     QProcess Downlad2;
     Downlad2.start("\""+program+"\" --user-agent=\""+user_agent+"\" -O \""+LocalPath+"\" \""+OnlineLink+"\" --timeout=15");
     while(!Downlad2.waitForStarted(500)&&!QProcess_stop) {}

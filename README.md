@@ -10,14 +10,34 @@
 <p align="center">
 <a href=https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest><img src="https://img.shields.io/github/v/release/aaronfeng753/waifu2x-extension-gui?label=Latest%20stable%20release&style=flat-square&color=brightgreen"></a>
 <img src="https://img.shields.io/badge/Support-Windows%20x64-blue?logo=Windows&style=flat-square">
+<img src="https://img.shields.io/badge/Support-Linux%20x64-orange?logo=Linux&style=flat-square">
+<img src="https://img.shields.io/badge/Support-macOS-red?logo=Apple&style=flat-square">
 </p>
 
-### [📜中文 说明文档](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/blob/master/README_CN.md)
+### [📜中文 说明文档](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/blob/master/README_CN.md) | [📜日本語](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/blob/master/README_JP.md)
 
-# [💾Download Latest Stable Build (Windows x64)](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest)
-Download Latest portable package for `Windows x64` PCs with `Intel/AMD/Nvidia` GPUs.
+# [💾Download Latest Stable Build](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest)
+Download Latest portable package for `Windows x64`, `Linux x64`, and `macOS` systems with `Intel/AMD/Nvidia` GPUs.
 
 Download Latest Build➡: https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/latest
+
+## 🚀 Quick Install (Linux/macOS)
+
+### One-line installation:
+```bash
+git clone https://github.com/AaronFeng753/Waifu2x-Extension-GUI.git
+cd Waifu2x-Extension-GUI
+./install.sh
+```
+
+This will automatically:
+- ✅ Detect your OS (Linux/macOS)
+- ✅ Select appropriate package manager (apt/dnf/pacman/zypper/brew)
+- ✅ Install all dependencies
+- ✅ Download external tools
+- ✅ Build the application
+
+**Note for macOS users**: Homebrew is required. [Install Homebrew](https://brew.sh) first if you don't have it.
 
 #### ➡Get ✨Premium version on Patreon: https://patreon.com/aaronfeng
 
@@ -35,7 +55,7 @@ Supported Languages: English, 简体中文, 繁體中文.
 - #### 😍Full image style support: Multiple built-in algorithms, 2D anime, or your daily photos & videos, this software can handle all of them.
 - #### 🎞Video frame interpolation: Automatically use AI to interpolate frames after enlarge the video.
 - #### ⚡Video Frame Analysis: Analyze video frames to Improve video Quality and Speed Up video processing.
-- #### ✅Great compatibility: Multiple built-in engines, compatible with almost all modern Windows PCs.
+- #### ✅Great compatibility: Multiple built-in engines, compatible with Windows, Linux, and macOS systems.
 - 📊Flexible multi-thread setting: You can adjust the number of threads freely while providing a complete set of settings for each engine, Take advantage of all the capabilities of your PC.
 - 🚀🚀🚀Multi-GPU support: Multi-GPU support for ALL built-in engines.
 - 🛠Numerous customizable settings: You can automate your workflow by adjusting the many customizable settings in the software.
@@ -185,3 +205,63 @@ In conclusion, we won't collect any data from you.
 - Thanks to [@Nova-Aurora](https://github.com/Nova-Aurora) for fixing several errors in the English README.
 - Thanks to [@Michael18751](https://github.com/AaronFeng753/Waifu2x-Extension-GUI/issues/118) for adding a fadeout effect to the notification sound.
 - Thanks to [@CaptainStabs](https://github.com/CaptainStabs) for fixing several English grammar errors.
+
+# Building from Source
+
+## Prerequisites
+
+### All Platforms:
+- Qt 5.15 or later
+- C++11 compatible compiler
+- Git
+
+### Platform-specific requirements:
+
+#### Windows:
+- Visual Studio 2019 or later
+- Windows SDK
+
+#### Linux:
+- GCC or Clang
+- Development packages: `qt5-default`, `libgl1-mesa-dev`
+- For video processing: `ffmpeg` development libraries
+
+#### macOS:
+- Xcode Command Line Tools
+- Homebrew (for dependency management)
+
+## Build Instructions
+
+### Windows:
+```bash
+git clone https://github.com/AaronFeng753/Waifu2x-Extension-GUI.git
+cd Waifu2x-Extension-GUI
+qmake Waifu2x-Extension-GUI.pro
+nmake
+```
+
+### Linux:
+```bash
+git clone https://github.com/AaronFeng753/Waifu2x-Extension-GUI.git
+cd Waifu2x-Extension-GUI
+qmake Waifu2x-Extension-GUI.pro
+make
+```
+
+### macOS:
+```bash
+git clone https://github.com/AaronFeng753/Waifu2x-Extension-GUI.git
+cd Waifu2x-Extension-GUI
+qmake Waifu2x-Extension-GUI.pro
+make
+```
+
+## External Tools Setup
+
+The software requires external AI engines to function. Download the appropriate binaries for your platform:
+
+- **Windows**: Pre-compiled binaries are included in releases
+- **Linux**: Install via package manager or compile from source
+- **macOS**: Use Homebrew or compile from source
+
+Place the binaries in the appropriate directories as specified in the software settings.
