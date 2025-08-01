@@ -1824,7 +1824,13 @@ void MainWindow::ExecuteCMD_batFile(QString cmd_str,bool requestAdmin)
     OpenFile_cmdFile.close();
     if(requestAdmin)
     {
+#ifdef Q_OS_WIN
         ShellExecuteW(NULL, QString("runas").toStdWString().c_str(), QString(Bat_path).toStdWString().c_str(), QString(Bat_path).toStdWString().c_str(), NULL, 1);
+#else
+        // On macOS/Linux, we can't easily run with admin privileges from Qt
+        // Just open the file normally
+        QDesktopServices::openUrl(QUrl("file:"+QUrl::toPercentEncoding(Bat_path)));
+#endif
     }
     else
     {

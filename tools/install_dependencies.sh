@@ -137,10 +137,16 @@ install_macos() {
         opencv \
         ffmpeg \
         python3 \
-        qt@5
+        qt@5 \
+        jq \
+        wget
     
-    # Link Qt5
-    brew link qt@5 --force
+    # Link Qt5 (handle conflicts with Qt6)
+    if brew list qt >/dev/null 2>&1; then
+        echo "Qt6 is installed. Unlinking Qt6 to use Qt5..."
+        brew unlink qt || true
+    fi
+    brew link qt@5 --force --overwrite || echo "Warning: Qt5 linking had issues, but continuing..."
 }
 
 # Main installation logic
@@ -183,7 +189,16 @@ main() {
     
     # Install Python packages
     echo "Installing Python packages..."
-    pip3 install --user numpy opencv-python
+    # Try to install via brew first (preferred on macOS)
+    if [[ "$PLATFORM" == "macos" ]]; then
+        brew install numpy || true
+        brew install opencv || true
+    else
+        # On Linux, use pip with --user flag or --break-system-packages if needed
+        pip3 install --user numpy opencv-python || \
+        pip3 install --user --break-system-packages numpy opencv-python || \
+        echo "Warning: Python packages installation failed, but continuing..."
+    fi
     
     echo "All dependencies installed successfully!"
 }

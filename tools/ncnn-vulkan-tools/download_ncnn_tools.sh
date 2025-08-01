@@ -33,27 +33,53 @@ download_tool() {
     echo "Downloading ${tool_name}..."
     
     # Get latest release info
-    local api_url="${repo_url/github.com/api.github.com\/repos}/releases/latest"
-    local release_info=$(curl -s "$api_url")
+    local api_url=$(echo "$repo_url" | sed 's|github.com|api.github.com/repos|')/releases/latest
+    echo "  Fetching from: $api_url"
+    local release_info
+    release_info=$(curl -s -H "User-Agent: Waifu2x-Extension-GUI" "$api_url")
+    
+    # Check if we got a response
+    if [[ -z "$release_info" ]] || [[ "$release_info" == "{}" ]]; then
+        echo "  Error: Failed to fetch release info from GitHub API"
+        return 1
+    fi
     
     # Extract download URL based on platform
     local download_url=""
-    if [[ "$PLATFORM" == "linux" ]]; then
-        download_url=$(echo "$release_info" | grep -oP "\"browser_download_url\": \"[^\"]*${asset_pattern}.*linux[^\"]*\"" | cut -d'"' -f4 | head -1)
+    if command -v jq &> /dev/null; then
+        # Use jq for more reliable parsing
+        if [[ "$PLATFORM" == "linux" ]]; then
+            download_url=$(echo "$release_info" | jq -r '.assets[] | select(.name | contains("linux")) | .browser_download_url' | head -1)
+        else
+            download_url=$(echo "$release_info" | jq -r '.assets[] | select(.name | contains("macos")) | .browser_download_url' | head -1)
+        fi
     else
-        download_url=$(echo "$release_info" | grep -oP "\"browser_download_url\": \"[^\"]*${asset_pattern}.*macos[^\"]*\"" | cut -d'"' -f4 | head -1)
+        # Fallback to grep/sed
+        if [[ "$PLATFORM" == "linux" ]]; then
+            download_url=$(echo "$release_info" | grep "browser_download_url" | grep "linux" | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/' | head -1)
+        else
+            download_url=$(echo "$release_info" | grep "browser_download_url" | grep "macos" | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/' | head -1)
+        fi
     fi
     
     if [[ -z "$download_url" ]]; then
-        echo "Warning: Could not find ${tool_name} release for ${PLATFORM}"
+        echo "  Warning: Could not find ${tool_name} release for ${PLATFORM}"
+        echo "  Debug: API URL was: $api_url"
         return 1
     fi
+    
+    echo "  Found: $download_url"
     
     local filename=$(basename "$download_url")
     local filepath="${DOWNLOAD_DIR}/${filename}"
     
-    # Download file
-    curl -L -o "$filepath" "$download_url"
+    # Download file if not already present
+    if [[ -f "$filepath" ]]; then
+        echo "  Already downloaded: $filename"
+    else
+        echo "  Downloading: $filename"
+        curl -L -H "User-Agent: Waifu2x-Extension-GUI" -o "$filepath" "$download_url"
+    fi
     
     # Extract based on file type
     if [[ "$filename" == *.zip ]]; then

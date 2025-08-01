@@ -1,0 +1,52 @@
+# Build directories
+**/build/
+**/build-*/
+*.build/
+
+# Binary files and downloads
+tools/ncnn-vulkan-tools/bin/
+tools/ncnn-vulkan-tools/downloads/
+
+# Qt generated files
+*.pro.user
+*.pro.user.*
+*.qmake.stash
+moc_*.cpp
+ui_*.h
+qrc_*.cpp
+
+# Object files
+*.o
+*.so
+*.dylib
+*.dll
+*.exe
+
+# macOS specific
+.DS_Store
+*.app/
+*.dmg
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.swp
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.venv/
+venv/
+
+# IDE specific
+.idea/
+.vscode/
+*.sublime-*
+
+# Test outputs
+test-api.json
+debug-*.sh
