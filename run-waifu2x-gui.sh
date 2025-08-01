@@ -56,6 +56,13 @@ if [ "$LANG_FILES_COUNT" -eq 0 ]; then
     cp "$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT"/language_*.qm "$APP_PATH/Contents/MacOS/" 2>/dev/null || true
 fi
 
+# Check notification sound file
+if [ ! -f "$APP_PATH/Contents/MacOS/NFSound_Waifu2xEX.mp3" ]; then
+    echo "⚠ Warning: Notification sound file not found in app bundle"
+    echo "  Copying sound file..."
+    cp "$SCRIPT_DIR/SRC_v3.41.01-beta/NFSound_Waifu2xEX.mp3" "$APP_PATH/Contents/MacOS/" 2>/dev/null || true
+fi
+
 echo "Starting Waifu2x-Extension-GUI..."
 echo "----------------------------------------"
 

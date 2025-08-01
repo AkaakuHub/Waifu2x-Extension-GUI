@@ -834,24 +834,16 @@ int MainWindow::Waifu2x_Compatibility_Test_finished()
     */
     if(isCompatible_FFmpeg==false||isCompatible_FFprobe==false||isCompatible_ImageMagick==false||isCompatible_Gifsicle==false||isCompatible_SoX==false)
     {
-        QMessageBox *MSG = new QMessageBox();
-        MSG->setWindowTitle(tr("Notification"));
-        MSG->setText(tr("One of the essential plugins is not compatible with your PC, the software may not work normally on your PC.\n\nYou can try to re-install this software, this might solve the problem."));
-        MSG->setIcon(QMessageBox::Warning);
-        MSG->setModal(true);
-        MSG->show();
+        QMessageBox::warning(nullptr, tr("Notification"), 
+            tr("One of the essential plugins is not compatible with your PC, the software may not work normally on your PC.\n\nYou can try to re-install this software, this might solve the problem."));
     }
     /*
     判断插帧引擎是否全部不兼容
     */
     if(isCompatible_RifeNcnnVulkan==false && isCompatible_CainNcnnVulkan==false)
     {
-        QMessageBox *MSG = new QMessageBox();
-        MSG->setWindowTitle(tr("Notification"));
-        MSG->setText(tr("All of the Frame Interpolation engines are not compatible with your PC, so you will not be able to use the Frame Interpolation function."));
-        MSG->setIcon(QMessageBox::Warning);
-        MSG->setModal(true);
-        MSG->show();
+        QMessageBox::warning(nullptr, tr("Notification"), 
+            tr("All of the Frame Interpolation engines are not compatible with your PC, so you will not be able to use the Frame Interpolation function."));
     }
     //========== 提示是否需要自动调整引擎设定 ==========
     QMessageBox Msg(QMessageBox::Question, QString(tr("Notification")), QString(tr("Do you need the software to automatically adjust the engine settings for you based on the compatibility test results?")));
