@@ -49,7 +49,14 @@ install_debian() {
         qt5-default \
         qttools5-dev-tools \
         libqt5svg5-dev \
-        libqt5opengl5-dev
+        libqt5opengl5-dev \
+        opencl-headers \
+        ocl-icd-opencl-dev \
+        gifsicle \
+        imagemagick \
+        sox \
+        wget \
+        jq
 }
 
 # Install dependencies for Fedora/RHEL/CentOS
@@ -69,7 +76,14 @@ install_redhat() {
         python3-pip \
         qt5-qtbase-devel \
         qt5-qttools-devel \
-        qt5-qtsvg-devel
+        qt5-qtsvg-devel \
+        opencl-headers \
+        ocl-icd-devel \
+        gifsicle \
+        ImageMagick \
+        sox \
+        wget \
+        jq
 }
 
 # Install dependencies for Arch Linux
@@ -89,7 +103,14 @@ install_arch() {
         python-pip \
         qt5-base \
         qt5-tools \
-        qt5-svg
+        qt5-svg \
+        opencl-headers \
+        ocl-icd \
+        gifsicle \
+        imagemagick \
+        sox \
+        wget \
+        jq
 }
 
 # Install dependencies for openSUSE

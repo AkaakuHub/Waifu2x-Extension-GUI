@@ -8,20 +8,29 @@ set -e
 # Get script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-# Set up paths
-APP_PATH="$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT/build/Waifu2x-Extension-GUI.app"
+# Set up paths based on OS
 TOOLS_DIR="$SCRIPT_DIR/tools/ncnn-vulkan-tools/bin"
-APP_EXEC="$APP_PATH/Contents/MacOS/Waifu2x-Extension-GUI"
+
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS app bundle
+    APP_PATH="$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT/build/Waifu2x-Extension-GUI.app"
+    APP_EXEC="$APP_PATH/Contents/MacOS/Waifu2x-Extension-GUI"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux binary
+    APP_PATH="$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT/build"
+    APP_EXEC="$APP_PATH/Waifu2x-Extension-GUI"
+fi
 
 # Check if application exists
 if [ ! -f "$APP_EXEC" ]; then
-    echo "Error: Application not found!"
+    echo "Error: Application not found at: $APP_EXEC"
     echo "Please run ./install.sh first to build and install the application."
     exit 1
 fi
 
-# Set up Qt5 paths for macOS
+# Setup Qt5 paths for macOS and Linux
 if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS Qt5 via Homebrew
     if [ -d "/opt/homebrew/opt/qt@5" ]; then
         export PATH="/opt/homebrew/opt/qt@5/bin:$PATH"
         export LDFLAGS="-L/opt/homebrew/opt/qt@5/lib"
@@ -35,15 +44,34 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         export PKG_CONFIG_PATH="/usr/local/opt/qt@5/lib/pkgconfig"
         export DYLD_LIBRARY_PATH="/usr/local/opt/qt@5/lib:$DYLD_LIBRARY_PATH"
     fi
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux Qt5 setup - usually system-wide installation
+    export QT_SELECT=qt5
+    # Add common Qt5 paths if they exist
+    [ -d "/usr/lib/qt5/bin" ] && export PATH="/usr/lib/qt5/bin:$PATH"
+    [ -d "/usr/lib/x86_64-linux-gnu/qt5/bin" ] && export PATH="/usr/lib/x86_64-linux-gnu/qt5/bin:$PATH"
 fi
 
 # Add system paths to PATH for tool detection
-export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+fi
 
-# Set OpenCL environment for macOS
-export PATH="/opt/homebrew/opt/opencl-icd-loader/bin:$PATH"
-export LDFLAGS="-L/opt/homebrew/opt/opencl-icd-loader/lib $LDFLAGS"
-export PKG_CONFIG_PATH="/opt/homebrew/opt/opencl-icd-loader/lib/pkgconfig:$PKG_CONFIG_PATH"
+# Set OpenCL environment for macOS and Linux
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS OpenCL via Homebrew
+    export PATH="/opt/homebrew/opt/opencl-icd-loader/bin:$PATH"
+    export LDFLAGS="-L/opt/homebrew/opt/opencl-icd-loader/lib $LDFLAGS"
+    export PKG_CONFIG_PATH="/opt/homebrew/opt/opencl-icd-loader/lib/pkgconfig:$PKG_CONFIG_PATH"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux OpenCL environment
+    export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+    # Add Mesa and NVIDIA OpenCL paths if they exist
+    [ -d "/usr/lib/x86_64-linux-gnu/mesa" ] && export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/mesa:$LD_LIBRARY_PATH"
+    [ -d "/usr/lib/nvidia-opencl-icd" ] && export LD_LIBRARY_PATH="/usr/lib/nvidia-opencl-icd:$LD_LIBRARY_PATH"
+fi
 
 # Check if external tools exist
 if [ -d "$TOOLS_DIR" ]; then
