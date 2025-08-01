@@ -40,6 +40,11 @@ fi
 # Add system paths to PATH for tool detection
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
+# Set OpenCL environment for macOS
+export PATH="/opt/homebrew/opt/opencl-icd-loader/bin:$PATH"
+export LDFLAGS="-L/opt/homebrew/opt/opencl-icd-loader/lib $LDFLAGS"
+export PKG_CONFIG_PATH="/opt/homebrew/opt/opencl-icd-loader/lib/pkgconfig:$PKG_CONFIG_PATH"
+
 # Check if external tools exist
 if [ -d "$TOOLS_DIR" ]; then
     echo "✓ External tools found at: $TOOLS_DIR"
@@ -111,5 +116,50 @@ fi
 
 echo "----------------------------------------"
 
-# Run the application
-exec "$APP_EXEC"
+# Set up signal handlers to ensure cleanup on exit
+cleanup() {
+    echo "Cleaning up processes..."
+    # Try gentle termination first
+    pkill -TERM -f "Waifu2x-Extension-GUI" 2>/dev/null || true
+    sleep 1
+    # Force kill if still running
+    pkill -KILL -f "Waifu2x-Extension-GUI" 2>/dev/null || true
+    # Also kill by process name
+    pkill -KILL "Waifu2x-Extension-GUI" 2>/dev/null || true
+    exit 0
+}
+
+trap cleanup EXIT INT TERM
+
+# Run the application and wait for it to finish
+"$APP_EXEC" &
+APP_PID=$!
+
+# Wait for the application to finish
+wait $APP_PID
+APP_EXIT_CODE=$?
+
+# If wait fails, try to kill the specific PID
+if [ $APP_EXIT_CODE -ne 0 ] || kill -0 $APP_PID 2>/dev/null; then
+    echo "Killing application process $APP_PID"
+    kill -TERM $APP_PID 2>/dev/null || true
+    sleep 1
+    kill -KILL $APP_PID 2>/dev/null || true
+fi
+
+# Clean up any remaining processes on exit
+if [ $APP_EXIT_CODE -ne 0 ]; then
+    echo "Application exited with code: $APP_EXIT_CODE"
+fi
+
+# Kill any remaining processes that might be hanging
+echo "Final cleanup..."
+pkill -TERM -f "Waifu2x-Extension-GUI" 2>/dev/null || true
+sleep 1
+pkill -KILL -f "Waifu2x-Extension-GUI" 2>/dev/null || true
+pkill -KILL "Waifu2x-Extension-GUI" 2>/dev/null || true
+
+# Force kill any Qt-related processes that might be hanging
+pkill -f "libQt" 2>/dev/null || true
+
+exit $APP_EXIT_CODE

@@ -139,7 +139,10 @@ install_macos() {
         python3 \
         qt@5 \
         jq \
-        wget
+        wget \
+        opencl-headers \
+        opencl-icd-loader \
+        gifsicle
     
     # Link Qt5 (handle conflicts with Qt6)
     if brew list qt >/dev/null 2>&1; then

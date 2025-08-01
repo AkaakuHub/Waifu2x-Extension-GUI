@@ -1272,7 +1272,8 @@ void MainWindow::Tip_FirstTimeStart()
         file_generateMarkFile(FirstTimeStart,"");
         //=======
         on_pushButton_clear_textbrowser_clicked();
-        on_pushButton_compatibilityTest_clicked();
+        // Skip automatic compatibility test on first run to avoid hanging
+        // on_pushButton_compatibilityTest_clicked();
     }
 }
 

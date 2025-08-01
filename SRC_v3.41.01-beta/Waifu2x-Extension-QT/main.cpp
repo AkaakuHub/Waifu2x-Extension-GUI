@@ -25,10 +25,20 @@ int main(int argc, char *argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);//高分辨率屏幕支持
     QApplication a(argc,argv);
-    a.setQuitOnLastWindowClosed(false);//隐藏无窗口时保持运行
+#ifdef Q_OS_WIN
+    a.setQuitOnLastWindowClosed(false);//隐藏无窗口时保持运行 (Windows only)
+#else
+    a.setQuitOnLastWindowClosed(true);//macOS/Linux: quit when last window closed
+#endif
     MainWindow *w = new MainWindow;
     w->show();
-    return a.exec();
+    int result = a.exec();
+    
+#ifndef Q_OS_WIN
+    // Force exit on macOS/Linux to ensure clean termination
+    exit(result);
+#endif
+    return result;
 }
 
 /*
