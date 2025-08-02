@@ -88,6 +88,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             gxx_linux-64 \
             opencv \
             ffmpeg \
+            imagemagick \
             mesalib \
             libgl \
             libglu \
