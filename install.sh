@@ -10,10 +10,47 @@ echo "Waifu2x-Extension-GUI Cross-Platform Installer"
 echo "================================================"
 echo ""
 
-# Check if running with proper permissions
-if [[ "$OSTYPE" == "linux-gnu"* ]] && [[ $EUID -ne 0 ]]; then
-   echo "Note: This script may require sudo permissions to install system packages."
-   echo ""
+# Linux: Choose sudo or no-sudo installation
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo "Linux installation options:"
+    echo "1. With sudo (recommended if available)"
+    echo "2. Without sudo (uses conda)"
+    echo ""
+    
+    # Auto-detect and suggest
+    if sudo -n true 2>/dev/null; then
+        echo "✓ sudo access detected"
+        echo "Recommendation: Use option 1 (with sudo)"
+        DEFAULT="1"
+    elif command -v conda &> /dev/null; then
+        echo "⚠ No sudo access, but conda found"
+        echo "Recommendation: Use option 2 (conda)"
+        DEFAULT="2"
+    else
+        echo "⚠ No sudo access, no conda found"
+        echo "You need to install conda first: ./tools/install_conda.sh"
+        echo "Recommendation: Install conda, then use option 2"
+        DEFAULT="2"
+    fi
+    
+    echo ""
+    read -p "Choose installation method [1/2] (default: $DEFAULT): " CHOICE
+    CHOICE=${CHOICE:-$DEFAULT}
+    
+    case $CHOICE in
+        1)
+            echo "Using sudo-based installation..."
+            exec ./install_linux_sudo.sh
+            ;;
+        2)
+            echo "Using conda-based installation..."
+            exec ./install_linux_no_sudo.sh
+            ;;
+        *)
+            echo "Invalid choice. Exiting."
+            exit 1
+            ;;
+    esac
 fi
 
 # Step 1: Install system dependencies

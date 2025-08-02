@@ -28,6 +28,18 @@ if [ ! -f "$APP_EXEC" ]; then
     exit 1
 fi
 
+# Activate conda environment if it exists (for sudo-less Linux installations)
+if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v conda &> /dev/null; then
+    CONDA_ENV="waifu2x-gui"
+    if conda env list | grep -q "^$CONDA_ENV "; then
+        echo "Activating conda environment: $CONDA_ENV"
+        source "$(conda info --base)/etc/profile.d/conda.sh"
+        conda activate "$CONDA_ENV"
+        # Add user-space bin to PATH
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+fi
+
 # Setup Qt5 paths for macOS and Linux
 if [[ "$OSTYPE" == "darwin"* ]]; then
     # macOS Qt5 via Homebrew
@@ -45,9 +57,21 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         export DYLD_LIBRARY_PATH="/usr/local/opt/qt@5/lib:$DYLD_LIBRARY_PATH"
     fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux Qt5 setup - usually system-wide installation
+    # Linux Qt5 setup
     export QT_SELECT=qt5
-    # Add common Qt5 paths if they exist
+    
+    # Check if we have conda env activated
+    if [ -n "$CONDA_PREFIX" ]; then
+        # Use conda Qt5 if available
+        if [ -d "$CONDA_PREFIX/bin" ]; then
+            export PATH="$CONDA_PREFIX/bin:$PATH"
+        fi
+        if [ -d "$CONDA_PREFIX/lib" ]; then
+            export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
+        fi
+    fi
+    
+    # Add common system Qt5 paths if they exist
     [ -d "/usr/lib/qt5/bin" ] && export PATH="/usr/lib/qt5/bin:$PATH"
     [ -d "/usr/lib/x86_64-linux-gnu/qt5/bin" ] && export PATH="/usr/lib/x86_64-linux-gnu/qt5/bin:$PATH"
 fi
