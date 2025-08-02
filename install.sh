@@ -51,13 +51,16 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         # Conda environment setup
         CONDA_ENV="waifu2x-gui"
         
-        # Clean environment variables
+        # Clean environment variables to prevent git conflicts
         unset CONDA_DEFAULT_ENV
         unset CONDA_PREFIX
         unset CONDA_SHLVL
         for var in $(env | grep ^CONDA_BACKUP_ | cut -d= -f1 2>/dev/null); do
             unset $var
         done
+        
+        # Backup original LD_LIBRARY_PATH to prevent git breakage
+        export ORIG_LD_LIBRARY_PATH="$LD_LIBRARY_PATH"
         
         # Setup conda
         if [ -f "$HOME/miniconda3/bin/conda" ]; then
@@ -116,8 +119,12 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 # Auto-generated conda environment information
 export CONDA_ENV_NAME="$CONDA_ENV"
 export CONDA_ENV_PATH="$CONDA_ENV_PATH"
-export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:\$LD_LIBRARY_PATH"
-export PATH="$CONDA_ENV_PATH/bin:\$PATH"
+# Backup original environment to prevent git conflicts
+export ORIG_LD_LIBRARY_PATH="\$LD_LIBRARY_PATH"
+export ORIG_PATH="\$PATH"
+# Set conda environment (only when running waifu2x)
+export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:\$ORIG_LD_LIBRARY_PATH"
+export PATH="$CONDA_ENV_PATH/bin:\$ORIG_PATH"
 EOF
         echo "✓ Environment info saved for run script"
         
