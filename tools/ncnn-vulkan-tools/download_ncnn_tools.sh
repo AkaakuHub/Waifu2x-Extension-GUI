@@ -68,12 +68,20 @@ download_tool() {
     
     # Extract download URL based on platform
     local download_url=""
-    if command -v jq &> /dev/null; then
+    
+    # Use conda jq if available, otherwise system jq
+    local JQ_CMD="jq"
+    if [ -n "$CONDA_ENV_PATH" ] && [ -f "$CONDA_ENV_PATH/bin/jq" ]; then
+        JQ_CMD="$CONDA_ENV_PATH/bin/jq"
+        echo "  Using conda jq: $JQ_CMD"
+    fi
+    
+    if command -v "$JQ_CMD" &> /dev/null; then
         # Use jq for more reliable parsing
         if [[ "$PLATFORM" == "linux" ]]; then
-            download_url=$(echo "$release_info" | jq -r '.assets[] | select(.name | contains("ubuntu") or .name | contains("linux")) | .browser_download_url' | head -1)
+            download_url=$(echo "$release_info" | "$JQ_CMD" -r '.assets[] | select(.name | contains("ubuntu") or .name | contains("linux")) | .browser_download_url' | head -1)
         else
-            download_url=$(echo "$release_info" | jq -r '.assets[] | select(.name | contains("macos")) | .browser_download_url' | head -1)
+            download_url=$(echo "$release_info" | "$JQ_CMD" -r '.assets[] | select(.name | contains("macos")) | .browser_download_url' | head -1)
         fi
     else
         # Fallback to grep/sed
