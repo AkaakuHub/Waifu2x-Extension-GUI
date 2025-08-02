@@ -45,9 +45,13 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             done
             
             # Set conda environment paths (prioritize conda over system)
-            export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib"
+            export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:$CONDA_ENV_PATH/lib/python3.9/site-packages"
             export PATH="$CONDA_ENV_PATH/bin:$PATH"
             export PKG_CONFIG_PATH="$CONDA_ENV_PATH/lib/pkgconfig:$PKG_CONFIG_PATH"
+            
+            # Force Qt5 from conda environment
+            export QT_PLUGIN_PATH="$CONDA_ENV_PATH/plugins"
+            export QML2_IMPORT_PATH="$CONDA_ENV_PATH/qml"
             
             echo "✓ Conda environment configured"
             echo "  CONDA_ENV_PATH: $CONDA_ENV_PATH"
@@ -121,19 +125,37 @@ else
     echo "  Some features may not work. Run './tools/ncnn-vulkan-tools/download_ncnn_tools.sh' to download them."
 fi
 
-# Check language files
-LANG_FILES_COUNT=$(ls "$APP_PATH/Contents/MacOS"/language_*.qm 2>/dev/null | wc -l)
-if [ "$LANG_FILES_COUNT" -eq 0 ]; then
-    echo "⚠ Warning: Language files not found in app bundle"
-    echo "  Copying language files..."
-    cp "$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT"/language_*.qm "$APP_PATH/Contents/MacOS/" 2>/dev/null || true
-fi
-
-# Check notification sound file
-if [ ! -f "$APP_PATH/Contents/MacOS/NFSound_Waifu2xEX.mp3" ]; then
-    echo "⚠ Warning: Notification sound file not found in app bundle"
-    echo "  Copying sound file..."
-    cp "$SCRIPT_DIR/SRC_v3.41.01-beta/NFSound_Waifu2xEX.mp3" "$APP_PATH/Contents/MacOS/" 2>/dev/null || true
+# Check language files based on OS
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    # macOS app bundle
+    LANG_FILES_COUNT=$(ls "$APP_PATH/Contents/MacOS"/language_*.qm 2>/dev/null | wc -l)
+    if [ "$LANG_FILES_COUNT" -eq 0 ]; then
+        echo "⚠ Warning: Language files not found in app bundle"
+        echo "  Copying language files..."
+        cp "$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT"/language_*.qm "$APP_PATH/Contents/MacOS/" 2>/dev/null || true
+    fi
+    
+    # Check notification sound file
+    if [ ! -f "$APP_PATH/Contents/MacOS/NFSound_Waifu2xEX.mp3" ]; then
+        echo "⚠ Warning: Notification sound file not found in app bundle"
+        echo "  Copying sound file..."
+        cp "$SCRIPT_DIR/SRC_v3.41.01-beta/NFSound_Waifu2xEX.mp3" "$APP_PATH/Contents/MacOS/" 2>/dev/null || true
+    fi
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Linux binary
+    LANG_FILES_COUNT=$(ls "$APP_PATH"/language_*.qm 2>/dev/null | wc -l)
+    if [ "$LANG_FILES_COUNT" -eq 0 ]; then
+        echo "⚠ Warning: Language files not found"
+        echo "  Copying language files..."
+        cp "$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT"/language_*.qm "$APP_PATH/" 2>/dev/null || true
+    fi
+    
+    # Check notification sound file
+    if [ ! -f "$APP_PATH/NFSound_Waifu2xEX.mp3" ]; then
+        echo "⚠ Warning: Notification sound file not found"
+        echo "  Copying sound file..."
+        cp "$SCRIPT_DIR/SRC_v3.41.01-beta/NFSound_Waifu2xEX.mp3" "$APP_PATH/" 2>/dev/null || true
+    fi
 fi
 
 echo "Starting Waifu2x-Extension-GUI..."
