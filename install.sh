@@ -206,6 +206,13 @@ if [ -f "$BUILD_CHECK" ] && [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_
     rm -rf build
     mkdir build
     cd build
+    
+    # Configure and build with conda Qt5
+    echo "Configuring with conda qmake..."
+    "$CONDA_ENV_PATH/bin/qmake" ../Waifu2x-Extension-QT.pro
+    echo "Building with conda toolchain..."
+    make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
+    
 elif [ -f "$BUILD_CHECK" ]; then
     echo "Application already built. Skipping build step."
     echo "To rebuild, delete the build directory first: rm -rf SRC_v3.41.01-beta/Waifu2x-Extension-QT/build"
