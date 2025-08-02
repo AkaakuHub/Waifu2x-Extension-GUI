@@ -80,16 +80,25 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             echo "✓ Environment already exists"
         fi
         
-        # Check if packages are already installed
+        # Check if packages are already installed (one batch call)
         echo "Checking installed packages..."
+        INSTALLED_PACKAGES=$($CONDA_CMD list -n "$CONDA_ENV" --export | cut -d'=' -f1)
+        
         PACKAGES_NEEDED=""
-        for pkg in pyqt=5 qt=5 cmake make gcc_linux-64 gxx_linux-64 opencv ffmpeg imagemagick mesalib libgl libglu numpy jq wget; do
-            if ! $CONDA_CMD list -n "$CONDA_ENV" | grep -q "^${pkg%=*} "; then
-                PACKAGES_NEEDED="$PACKAGES_NEEDED $pkg"
+        PACKAGES_FOUND=""
+        for pkg in pyqt qt cmake make gcc_linux-64 gxx_linux-64 opencv ffmpeg imagemagick mesalib libgl libglu numpy jq wget; do
+            pkg_name=${pkg%=*}
+            if echo "$INSTALLED_PACKAGES" | grep -q "^$pkg_name$"; then
+                PACKAGES_FOUND="$PACKAGES_FOUND ✓$pkg"
             else
-                echo "✓ $pkg already installed"
+                PACKAGES_NEEDED="$PACKAGES_NEEDED $pkg"
             fi
         done
+        
+        # Display results all at once
+        if [ -n "$PACKAGES_FOUND" ]; then
+            echo "Already installed:$PACKAGES_FOUND"
+        fi
         
         if [ -n "$PACKAGES_NEEDED" ]; then
             echo "Installing missing packages:$PACKAGES_NEEDED"
