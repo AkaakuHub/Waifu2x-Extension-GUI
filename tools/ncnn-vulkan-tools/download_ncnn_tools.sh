@@ -80,11 +80,17 @@ download_tool() {
     fi
     
     if command -v "$JQ_CMD" &> /dev/null; then
-        # Use jq for more reliable parsing
-        if [[ "$PLATFORM" == "linux" ]]; then
-            download_url=$(echo "$release_info" | "$JQ_CMD" -r '.assets[] | select(.name | contains("ubuntu") or .name | contains("linux")) | .browser_download_url' | head -1)
+        # Test jq first with simple command
+        if echo "$release_info" | "$JQ_CMD" '.tag_name' &> /dev/null; then
+            # Use jq for more reliable parsing
+            if [[ "$PLATFORM" == "linux" ]]; then
+                download_url=$(echo "$release_info" | "$JQ_CMD" -r '.assets[] | select(.name | test("ubuntu|linux")) | .browser_download_url' | head -1)
+            else
+                download_url=$(echo "$release_info" | "$JQ_CMD" -r '.assets[] | select(.name | test("macos")) | .browser_download_url' | head -1)
+            fi
         else
-            download_url=$(echo "$release_info" | "$JQ_CMD" -r '.assets[] | select(.name | contains("macos")) | .browser_download_url' | head -1)
+            echo "  jq test failed, falling back to grep/sed"
+            JQ_CMD=""  # Force fallback
         fi
     else
         # Fallback to grep/sed
