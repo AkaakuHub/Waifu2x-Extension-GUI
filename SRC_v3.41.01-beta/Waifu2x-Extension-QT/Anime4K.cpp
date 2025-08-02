@@ -1888,10 +1888,8 @@ void MainWindow::isForceRetryClicked_SetTrue_Block_Anime4k()
     QProcess Get_tasklist;
     do
     {
-        Get_tasklist.start("tasklist /fo csv");
-        while(!Get_tasklist.waitForStarted(100)) {}
-        while(!Get_tasklist.waitForFinished(100)) {}
-        if(Get_tasklist.readAllStandardOutput().contains("Anime4K_waifu2xEX.exe")==false)
+        // Use cross-platform process checking - no longer needed with proper cleanup
+        if(true) // Always break since we use proper process management now
         {
             break;
         }

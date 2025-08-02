@@ -242,10 +242,10 @@ int MainWindow::Force_close()
 {
     //=============
     QStringList TaskNameList;
-    TaskNameList << "convert_waifu2xEX.exe"<<"ffmpeg_waifu2xEX.exe"<<"ffprobe_waifu2xEX.exe"<<"identify_waifu2xEX.exe"<<"gifsicle_waifu2xEX.exe"<<"waifu2x-ncnn-vulkan_waifu2xEX.exe"
-                 <<"waifu2x-ncnn-vulkan-fp16p_waifu2xEX.exe"<<"Anime4K_waifu2xEX.exe"<<"waifu2x-caffe_waifu2xEX.exe"<<"srmd-ncnn-vulkan_waifu2xEX.exe"<<"realsr-ncnn-vulkan_waifu2xEX.exe"
-                 <<"waifu2x-converter-cpp_waifu2xEX.exe"<<"sox_waifu2xEX.exe"<<"wget_waifu2xEX.exe"<<"rife-ncnn-vulkan_waifu2xEX.exe"<<"cain-ncnn-vulkan_waifu2xEX.exe"<<"dain-ncnn-vulkan_waifu2xEX.exe"
-                 <<"srmd-cuda_waifu2xEX.exe"<<"apngdis_waifu2xEX.exe"<<"apngasm_waifu2xEX.exe";
+    TaskNameList << CONVERT_NAME << FFMPEG_NAME << FFPROBE_NAME << IDENTIFY_NAME << GIFSICLE_NAME << WAIFU2X_NCNN_VULKAN_NAME
+                 << WAIFU2X_NCNN_VULKAN_FP16P_NAME << ANIME4K_NAME << WAIFU2X_CAFFE_NAME << SRMD_NCNN_VULKAN_NAME << REALSR_NCNN_VULKAN_NAME
+                 << WAIFU2X_CONVERTER_NAME << SOX_NAME << WGET_NAME << RIFE_NCNN_VULKAN_NAME << CAIN_NCNN_VULKAN_NAME << DAIN_NCNN_VULKAN_NAME
+                 << SRMD_CUDA_NAME << APNGDIS_NAME << APNGASM_NAME;
     KILL_TASK_QStringList(TaskNameList,true);
     //===========
     QProcess Close;
@@ -2060,8 +2060,8 @@ void MainWindow::TurnOffScreen()
 {
     QProcess *OffScreen = new QProcess();
 #ifdef Q_OS_WIN
-    // Windows: Use nircmd
-    OffScreen->start("\""+Current_Path+"/nircmd-x64/nircmd.exe\" monitor off");
+    // Use platform-specific monitor off command
+    PlatformUtils::monitorOff();
 #elif defined(Q_OS_MAC)
     // macOS: Use pmset to turn off display
     OffScreen->start("pmset", QStringList() << "displaysleepnow");

@@ -44,9 +44,14 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //==========================================
     //         waifu2x-ncnn-vulkan 最新版
     //==========================================
-    QString Waifu2x_folder_path = Current_Path + "/waifu2x-ncnn-vulkan";
     QString program = WAIFU2X_NCNN_VULKAN_NAME; // Use smart detection
-    QString model_path = Waifu2x_folder_path+"/models-upconv_7_anime_style_art_rgb";
+    // Find model path based on actual tool location
+    QString program_dir = QFileInfo(program).absolutePath();
+    QString model_path = program_dir + "/models-upconv_7_anime_style_art_rgb";
+    if (!QDir(model_path).exists()) {
+        // Fallback to old path
+        model_path = Current_Path + "/waifu2x-ncnn-vulkan/models-upconv_7_anime_style_art_rgb";
+    }
     QProcess *Waifu2x_vulkan = new QProcess();
     QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
@@ -80,9 +85,12 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //==========================================
     //     waifu2x-ncnn-vulkan 自己编译的老版本
     //==========================================
-    Waifu2x_folder_path = Current_Path + "/waifu2x-ncnn-vulkan-old";
-    program = WAIFU2X_NCNN_VULKAN_NAME; // Use smart detection
-    model_path = Waifu2x_folder_path+"/models-upconv_7_anime_style_art_rgb";
+    program = WAIFU2X_NCNN_VULKAN_NAME; // Use smart detection (same as latest)
+    QString program_dir_old = QFileInfo(program).absolutePath();
+    model_path = program_dir_old + "/models-upconv_7_anime_style_art_rgb";
+    if (!QDir(model_path).exists()) {
+        model_path = Current_Path + "/waifu2x-ncnn-vulkan-old/models-upconv_7_anime_style_art_rgb";
+    }
     QProcess *Waifu2x_vulkan_old = new QProcess();
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
@@ -241,9 +249,12 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //==========================================
     //            SRMD-ncnn-vulkan
     //==========================================
-    Waifu2x_folder_path = Current_Path + "/srmd-ncnn-vulkan";
     program = SRMD_NCNN_VULKAN_NAME; // Use smart detection
-    model_path = Waifu2x_folder_path+"/models-srmd";
+    QString program_dir_srmd = QFileInfo(program).absolutePath();
+    model_path = program_dir_srmd + "/models-srmd";
+    if (!QDir(model_path).exists()) {
+        model_path = Current_Path + "/srmd-ncnn-vulkan/models-srmd";
+    }
     QProcess *SRMD_NCNN_VULKAN = new QProcess();
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
@@ -366,9 +377,12 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //==========================================
     //            RealSR-ncnn-vulkan
     //==========================================
-    Waifu2x_folder_path = Current_Path + "/realsr-ncnn-vulkan";
     program = REALSR_NCNN_VULKAN_NAME; // Use smart detection
-    model_path = Waifu2x_folder_path+"/models-DF2K_JPEG";
+    QString program_dir_realsr = QFileInfo(program).absolutePath();
+    model_path = program_dir_realsr + "/models-DF2K_JPEG";
+    if (!QDir(model_path).exists()) {
+        model_path = Current_Path + "/realsr-ncnn-vulkan/models-DF2K_JPEG";
+    }
     QProcess *realsr_ncnn_vulkan_qprocess = new QProcess();
     cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 4 -t 32 -m " + "\"" + model_path + "\"";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)

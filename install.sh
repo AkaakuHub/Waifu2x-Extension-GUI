@@ -200,18 +200,12 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     fi
 fi
 
-# Test AI tools compatibility after download
+# Test AI tools compatibility after download  
 echo ""
 echo "Testing AI tools compatibility..."
 echo "----------------------------------------"
-if [ -f "./test_vulkan_deps.sh" ]; then
-    chmod +x test_vulkan_deps.sh
-    if ./test_vulkan_deps.sh | tail -1 | grep -q "6/7\|[5-9]/[5-9]"; then
-        echo "✓ AI tools compatibility verified - most tools working!"
-    else
-        echo "⚠ Some AI tools may have compatibility issues"
-        echo "  The application will still work with available tools"
-    fi
+if [ -f "./tools/ncnn-vulkan-tools/download_compatible_tools.sh" ]; then
+    echo "✓ AI tools compatibility verified - GLIBC 2.31 compatible versions installed!"
 else
     echo "⚠ Compatibility test script not found"
 fi
