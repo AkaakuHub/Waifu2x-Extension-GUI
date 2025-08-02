@@ -26,7 +26,7 @@ echo ""
 # Test conda packages
 if [ -n "$CONDA_ENV_PATH" ]; then
     echo "=== Conda Package Test ==="
-    for pkg in ffmpeg imagemagick jq wget; do
+    for pkg in ffmpeg jq wget; do
         if [ -f "$CONDA_ENV_PATH/bin/$pkg" ]; then
             echo "✓ $pkg: $CONDA_ENV_PATH/bin/$pkg"
             "$CONDA_ENV_PATH/bin/$pkg" --version 2>/dev/null | head -1 || echo "  (version check failed)"
@@ -34,6 +34,20 @@ if [ -n "$CONDA_ENV_PATH" ]; then
             echo "❌ $pkg: Not found in conda environment"
         fi
     done
+    
+    # Test ImageMagick (multiple possible names)
+    echo "Testing ImageMagick..."
+    for magick_name in magick convert imagemagick; do
+        if [ -f "$CONDA_ENV_PATH/bin/$magick_name" ]; then
+            echo "✓ ImageMagick ($magick_name): $CONDA_ENV_PATH/bin/$magick_name"
+            "$CONDA_ENV_PATH/bin/$magick_name" --version 2>/dev/null | head -1 || echo "  (version check failed)"
+            break
+        fi
+    done
+    
+    # List all ImageMagick-related binaries
+    echo "All ImageMagick binaries in conda environment:"
+    ls -la "$CONDA_ENV_PATH/bin/" | grep -i magick || echo "  None found"
     echo ""
 fi
 
