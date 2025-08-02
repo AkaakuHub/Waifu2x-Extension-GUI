@@ -336,7 +336,7 @@ cleanup() {
     echo "Cleaning up processes..."
     # Try gentle termination first
     pkill -TERM -f "Waifu2x-Extension-GUI" 2>/dev/null || true
-    sleep 1
+    /bin//bin/sleep 1
     # Force kill if still running
     pkill -KILL -f "Waifu2x-Extension-GUI" 2>/dev/null || true
     # Also kill by process name
@@ -354,7 +354,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
     # Ensure conda libraries are used exclusively
     export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib"
     export QT_PLUGIN_PATH="$CONDA_ENV_PATH/plugins"
-    export PATH="$CONDA_ENV_PATH/bin"
+    export PATH="$CONDA_ENV_PATH/bin:/usr/bin:/bin"
     
     # Additional Qt environment isolation
     export QT_QPA_PLATFORM_PLUGIN_PATH="$CONDA_ENV_PATH/plugins/platforms"
@@ -371,7 +371,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
     
     # Verify Qt5 availability one more time
     if command -v qmake &> /dev/null; then
-        QT_QMAKE_VERSION=$(qmake -version 2>/dev/null | grep "Qt version" | cut -d' ' -f4)
+        QT_QMAKE_VERSION=$(qmake -version 2>/dev/null | /bin/grep "Qt version" 2>/dev/null | /usr/bin/cut -d' ' -f4 2>/dev/null || echo "5.15")
         echo "Using Qt version: $QT_QMAKE_VERSION"
     fi
 fi
@@ -387,7 +387,7 @@ APP_EXIT_CODE=$?
 if [ $APP_EXIT_CODE -ne 0 ] || kill -0 $APP_PID 2>/dev/null; then
     echo "Killing application process $APP_PID"
     kill -TERM $APP_PID 2>/dev/null || true
-    sleep 1
+    /bin//bin/sleep 1
     kill -KILL $APP_PID 2>/dev/null || true
 fi
 
@@ -399,7 +399,7 @@ fi
 # Kill any remaining processes that might be hanging
 echo "Final cleanup..."
 pkill -TERM -f "Waifu2x-Extension-GUI" 2>/dev/null || true
-sleep 1
+/bin/sleep 1
 pkill -KILL -f "Waifu2x-Extension-GUI" 2>/dev/null || true
 pkill -KILL "Waifu2x-Extension-GUI" 2>/dev/null || true
 
