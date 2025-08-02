@@ -221,7 +221,13 @@ cleanup() {
 
 trap cleanup EXIT INT TERM
 
-# Run the application and wait for it to finish
+# Run the application with conda Qt5 libraries forced
+if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
+    # Force conda Qt5 libraries using LD_PRELOAD
+    export LD_PRELOAD="$CONDA_ENV_PATH/lib/libQt5Core.so.5:$CONDA_ENV_PATH/lib/libstdc++.so.6"
+    echo "Using conda Qt5 libraries: $LD_PRELOAD"
+fi
+
 "$APP_EXEC" &
 APP_PID=$!
 
