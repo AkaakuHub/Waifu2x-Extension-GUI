@@ -10,17 +10,17 @@ echo "Waifu2x-Extension-GUI Cross-Platform Installer"
 echo "================================================"
 echo ""
 
-# Linux: Choose sudo or no-sudo installation
+# Linux-specific installation with sudo/conda choice
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     echo "Linux installation options:"
-    echo "1. With sudo (recommended if available)"
-    echo "2. Without sudo (uses conda)"
+    echo "1. With sudo (system packages)"
+    echo "2. Without sudo (conda environment)"
     echo ""
     
     # Auto-detect and suggest
     if sudo -n true 2>/dev/null; then
         echo "✓ sudo access detected"
-        echo "Recommendation: Use option 1 (with sudo)"
+        echo "Recommendation: Use option 1 (system packages)"
         DEFAULT="1"
     elif command -v conda &> /dev/null; then
         echo "⚠ No sudo access, but conda found"
@@ -28,8 +28,16 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         DEFAULT="2"
     else
         echo "⚠ No sudo access, no conda found"
-        echo "You need to install conda first: ./tools/install_conda.sh"
-        echo "Recommendation: Install conda, then use option 2"
+        echo "Installing miniconda automatically..."
+        
+        # Auto-install conda
+        echo "Downloading and installing Miniconda..."
+        cd /tmp
+        wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+        bash Miniconda3-latest-Linux-x86_64.sh -b -p "$HOME/miniconda3"
+        "$HOME/miniconda3/bin/conda" init bash
+        export PATH="$HOME/miniconda3/bin:$PATH"
+        echo "✓ Miniconda installed"
         DEFAULT="2"
     fi
     
@@ -37,31 +45,105 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     read -p "Choose installation method [1/2] (default: $DEFAULT): " CHOICE
     CHOICE=${CHOICE:-$DEFAULT}
     
-    case $CHOICE in
-        1)
-            echo "Using sudo-based installation..."
-            exec ./install_linux_sudo.sh
-            ;;
-        2)
-            echo "Using conda-based installation..."
-            exec ./install_linux_no_sudo.sh
-            ;;
-        *)
-            echo "Invalid choice. Exiting."
-            exit 1
-            ;;
-    esac
+    if [ "$CHOICE" = "2" ]; then
+        echo "Using conda-based installation..."
+        
+        # Conda environment setup
+        CONDA_ENV="waifu2x-gui"
+        
+        # Clean environment variables
+        unset CONDA_DEFAULT_ENV
+        unset CONDA_PREFIX
+        unset CONDA_SHLVL
+        for var in $(env | grep ^CONDA_BACKUP_ | cut -d= -f1 2>/dev/null); do
+            unset $var
+        done
+        
+        # Setup conda
+        if [ -f "$HOME/miniconda3/bin/conda" ]; then
+            export PATH="$HOME/miniconda3/bin:$PATH"
+            CONDA_CMD="$HOME/miniconda3/bin/conda"
+        elif [ -f "/usr/local/anaconda3/bin/conda" ]; then
+            export PATH="/usr/local/anaconda3/bin:$PATH"
+            CONDA_CMD="/usr/local/anaconda3/bin/conda"
+        else
+            CONDA_CMD="conda"
+        fi
+        
+        echo "Creating conda environment: $CONDA_ENV"
+        if ! $CONDA_CMD env list | grep -q "^$CONDA_ENV "; then
+            $CONDA_CMD create -n "$CONDA_ENV" python=3.9 -y
+        else
+            echo "✓ Environment already exists"
+        fi
+        
+        # Install packages
+        echo "Installing packages..."
+        $CONDA_CMD install -n "$CONDA_ENV" -c conda-forge -y \
+            pyqt=5 \
+            qt=5 \
+            cmake \
+            make \
+            gcc_linux-64 \
+            gxx_linux-64 \
+            opencv \
+            ffmpeg \
+            mesalib \
+            libgl \
+            libglu \
+            numpy \
+            jq \
+            wget
+        
+        # Set environment paths
+        CONDA_ENV_PATH=$($CONDA_CMD env list | grep "$CONDA_ENV" | awk '{print $2}')
+        export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:$LD_LIBRARY_PATH"
+        export PATH="$CONDA_ENV_PATH/bin:$PATH"
+        
+        # Create libGL symlinks if needed
+        if [ -f "$CONDA_ENV_PATH/lib/libGL.so.1.7.0" ] && [ ! -f "$CONDA_ENV_PATH/lib/libGL.so" ]; then
+            cd "$CONDA_ENV_PATH/lib"
+            ln -sf libGL.so.1.7.0 libGL.so.1
+            ln -sf libGL.so.1 libGL.so
+        fi
+        
+        echo "✓ Conda environment ready"
+        
+        # Save environment info for run script
+        cat > ../../conda_env_info.sh << EOF
+#!/bin/bash
+# Auto-generated conda environment information
+export CONDA_ENV_NAME="$CONDA_ENV"
+export CONDA_ENV_PATH="$CONDA_ENV_PATH"
+export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:\$LD_LIBRARY_PATH"
+export PATH="$CONDA_ENV_PATH/bin:\$PATH"
+EOF
+        echo "✓ Environment info saved for run script"
+        
+    elif [ "$CHOICE" = "1" ]; then
+        echo "Using system packages installation..."
+        
+        # Install system dependencies
+        echo "Installing system dependencies..."
+        bash tools/install_dependencies.sh
+        
+    else
+        echo "Invalid choice. Exiting."
+        exit 1
+    fi
+    
 fi
 
-# Step 1: Install system dependencies
-echo "Step 1: Installing system dependencies..."
-echo "----------------------------------------"
-bash tools/install_dependencies.sh
+# macOS installation
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Installing macOS dependencies..."
+    bash tools/install_dependencies.sh
+fi
 
-# Step 2: Setup Qt5 paths for macOS
+# Setup Qt5 paths for macOS
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo ""
-    echo "Step 2: Setting up Qt5 paths for macOS..."
+    echo "Setting up Qt5 paths for macOS..."
     echo "----------------------------------------"
     # Check if Qt5 is installed via Homebrew
     if [ -d "/opt/homebrew/opt/qt@5" ]; then
@@ -82,15 +164,15 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
 fi
 
-# Step 3: Download/Build external tools
+# Download/Build external tools
 echo ""
-echo "Step 3: Setting up external tools..."
+echo "Setting up external tools..."
 echo "----------------------------------------"
 bash tools/ncnn-vulkan-tools/download_ncnn_tools.sh
 
-# Step 4: Build the application
+# Build the application
 echo ""
-echo "Step 4: Building Waifu2x-Extension-GUI..."
+echo "Building Waifu2x-Extension-GUI..."
 echo "----------------------------------------"
 cd SRC_v3.41.01-beta/Waifu2x-Extension-QT
 
@@ -111,17 +193,22 @@ else
     mkdir build
     cd build
 
-    # Configure with qmake
-    qmake ../Waifu2x-Extension-QT.pro
+    # Configure with qmake (conda environment should be active for Linux)
+    if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
+        # Use qmake from conda environment
+        "$CONDA_ENV_PATH/bin/qmake" ../Waifu2x-Extension-QT.pro
+    else
+        qmake ../Waifu2x-Extension-QT.pro
+    fi
 
     # Build
     make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 1)
 fi
 
-# Step 5: Copy latest binary with fixes (macOS only)
+# Copy latest binary with fixes (macOS only)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     echo ""
-    echo "Step 5: Copying latest binary with compatibility test fixes..."
+    echo "Copying latest binary with compatibility test fixes..."
     echo "----------------------------------------"
 
     # Copy the latest built binary to ensure we have the compatibility test fixes
@@ -141,9 +228,9 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     fi
 fi
 
-# Step 6: Post-build setup
+# Post-build setup
 echo ""
-echo "Step 6: Setting up application..."
+echo "Setting up application..."
 echo "----------------------------------------"
 
 # Copy language files and create directories based on OS
