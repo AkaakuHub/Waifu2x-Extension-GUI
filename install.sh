@@ -109,6 +109,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         
         # Set environment paths
         CONDA_ENV_PATH=$($CONDA_CMD env list | grep "$CONDA_ENV" | awk '{print $2}')
+        export CONDA_ENV_PATH="$CONDA_ENV_PATH"
         export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:$LD_LIBRARY_PATH"
         export PATH="$CONDA_ENV_PATH/bin:$PATH"
         
