@@ -58,6 +58,9 @@ download_tool() {
         return 1
     fi
     
+    # Debug: Show first 200 chars of API response
+    echo "  API Response (first 200 chars): $(echo "$release_info" | head -c 200)"
+    
     # Debug: Check if API response contains error
     if echo "$release_info" | grep -q "rate limit\|API rate limit"; then
         echo "  Error: GitHub API rate limit exceeded"
