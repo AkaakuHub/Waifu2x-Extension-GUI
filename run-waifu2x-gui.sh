@@ -55,36 +55,85 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         if conda env list | grep -q "^$CONDA_ENV "; then
             echo "Loading conda environment configuration..."
             
-            # Get conda environment path
+            # Get conda environment path - try multiple detection methods
             CONDA_ENV_PATH=$(conda env list | grep "^$CONDA_ENV " | awk '{print $2}')
             
-            # Clean existing conda environment variables to prevent conflicts
-            for var in $(env | grep ^CONDA_BACKUP_ | cut -d= -f1 2>/dev/null); do
-                unset $var
-            done
-            
-            # Set conda environment paths (prioritize conda over system)
-            export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:$CONDA_ENV_PATH/lib/python3.9/site-packages"
-            export PATH="$CONDA_ENV_PATH/bin:$PATH"
-            export PKG_CONFIG_PATH="$CONDA_ENV_PATH/lib/pkgconfig:$PKG_CONFIG_PATH"
-            
-            # Force Qt5 from conda environment
-            export QT_PLUGIN_PATH="$CONDA_ENV_PATH/plugins"
-            export QML2_IMPORT_PATH="$CONDA_ENV_PATH/qml"
-            
-            echo "✓ Conda environment configured"
-            echo "  CONDA_ENV_PATH: $CONDA_ENV_PATH"
-            
-            # Quick AI tools compatibility check
-            if [ -f "./test_vulkan_deps.sh" ]; then
-                WORKING_TOOLS=$(./test_vulkan_deps.sh 2>/dev/null | grep "Working AI tools:" | cut -d: -f2 | wc -w)
-                if [ "$WORKING_TOOLS" -gt 5 ]; then
-                    echo "  ✓ AI tools ready ($WORKING_TOOLS tools available)"
-                else
-                    echo "  ⚠ Limited AI tools available ($WORKING_TOOLS tools)"
-                fi
+            # Fallback: try common conda installation paths
+            if [ -z "$CONDA_ENV_PATH" ] || [ ! -d "$CONDA_ENV_PATH" ]; then
+                for potential_path in "/export/data/m2311202/conda_envs/waifu2x-gui" "$HOME/conda/envs/waifu2x-gui" "$HOME/miniconda3/envs/waifu2x-gui" "$HOME/anaconda3/envs/waifu2x-gui"; do
+                    if [ -d "$potential_path" ]; then
+                        CONDA_ENV_PATH="$potential_path"
+                        break
+                    fi
+                done
             fi
+            
+            if [ -n "$CONDA_ENV_PATH" ] && [ -d "$CONDA_ENV_PATH" ]; then
+                echo "Found conda environment at: $CONDA_ENV_PATH"
+                
+                # Clean existing conda environment variables to prevent conflicts
+                for var in $(env | grep ^CONDA_BACKUP_ | cut -d= -f1 2>/dev/null); do
+                    unset $var
+                done
+                
+                # Clear system library paths completely to avoid conflicts
+                unset LD_LIBRARY_PATH
+                unset LD_PRELOAD
+                unset QT_PLUGIN_PATH
+                unset QML2_IMPORT_PATH
+                unset QTDIR
+                
+                # Set conda environment paths EXCLUSIVELY (no system paths)
+                export CONDA_PREFIX="$CONDA_ENV_PATH"
+                export PATH="$CONDA_ENV_PATH/bin"
+                export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib"
+                export PKG_CONFIG_PATH="$CONDA_ENV_PATH/lib/pkgconfig"
+                
+                # Force Qt5 from conda environment ONLY
+                export QT_PLUGIN_PATH="$CONDA_ENV_PATH/plugins"
+                export QML2_IMPORT_PATH="$CONDA_ENV_PATH/qml"
+                export QTDIR="$CONDA_ENV_PATH"
+                export QT_SELECT="qt5"
+                
+                # Critical: Ensure GCC/libstdc++ compatibility
+                if [ -f "$CONDA_ENV_PATH/lib/libstdc++.so.6" ]; then
+                    export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib:$LD_LIBRARY_PATH"
+                fi
+                
+                # Prevent Qt from searching system paths
+                export QT_QPA_PLATFORM_PLUGIN_PATH="$CONDA_ENV_PATH/plugins/platforms"
+                export QT_QPA_GENERIC_PLUGINS="$CONDA_ENV_PATH/plugins/generic"
+                
+                echo "✓ Conda environment configured (EXCLUSIVE mode)"
+                echo "  CONDA_ENV_PATH: $CONDA_ENV_PATH"
+                echo "  LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+                echo "  PATH: $PATH"
+                
+                # Validate Qt5 libraries
+                if [ -f "$CONDA_ENV_PATH/lib/libQt5Core.so.5" ]; then
+                    QT_VERSION=$(strings "$CONDA_ENV_PATH/lib/libQt5Core.so.5" | grep -E "Qt_5\.[0-9]+" | head -1)
+                    echo "  ✓ Found Qt5 libraries: $QT_VERSION"
+                else
+                    echo "  ⚠ Warning: Qt5 libraries not found in conda environment"
+                fi
+                
+                # Quick AI tools compatibility check
+                if [ -f "./test_vulkan_deps.sh" ]; then
+                    WORKING_TOOLS=$(./test_vulkan_deps.sh 2>/dev/null | grep "Working AI tools:" | cut -d: -f2 | wc -w)
+                    if [ "$WORKING_TOOLS" -gt 5 ]; then
+                        echo "  ✓ AI tools ready ($WORKING_TOOLS tools available)"
+                    else
+                        echo "  ⚠ Limited AI tools available ($WORKING_TOOLS tools)"
+                    fi
+                fi
+            else
+                echo "  ⚠ Warning: Could not locate conda environment directory"
+            fi
+        else
+            echo "  ⚠ Warning: Conda environment 'waifu2x-gui' not found"
         fi
+    else
+        echo "  ⚠ Warning: Conda not found in PATH"
     fi
 fi
 
@@ -105,30 +154,39 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
         export DYLD_LIBRARY_PATH="/usr/local/opt/qt@5/lib:$DYLD_LIBRARY_PATH"
     fi
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux Qt5 setup
-    export QT_SELECT=qt5
-    
-    # Check if we have conda env activated
-    if [ -n "$CONDA_PREFIX" ]; then
-        # Use conda Qt5 if available
-        if [ -d "$CONDA_PREFIX/bin" ]; then
-            export PATH="$CONDA_PREFIX/bin:$PATH"
+    # Linux Qt5 setup - ONLY if conda environment is not configured
+    if [ -z "$CONDA_ENV_PATH" ]; then
+        export QT_SELECT=qt5
+        
+        # Check if we have conda env activated
+        if [ -n "$CONDA_PREFIX" ]; then
+            # Use conda Qt5 if available
+            if [ -d "$CONDA_PREFIX/bin" ]; then
+                export PATH="$CONDA_PREFIX/bin:$PATH"
+            fi
+            if [ -d "$CONDA_PREFIX/lib" ]; then
+                export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
+            fi
         fi
-        if [ -d "$CONDA_PREFIX/lib" ]; then
-            export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
-        fi
+        
+        # Add common system Qt5 paths if they exist (fallback only)
+        [ -d "/usr/lib/qt5/bin" ] && export PATH="/usr/lib/qt5/bin:$PATH"
+        [ -d "/usr/lib/x86_64-linux-gnu/qt5/bin" ] && export PATH="/usr/lib/x86_64-linux-gnu/qt5/bin:$PATH"
+    else
+        echo "Skipping system Qt5 setup - using conda environment exclusively"
     fi
-    
-    # Add common system Qt5 paths if they exist
-    [ -d "/usr/lib/qt5/bin" ] && export PATH="/usr/lib/qt5/bin:$PATH"
-    [ -d "/usr/lib/x86_64-linux-gnu/qt5/bin" ] && export PATH="/usr/lib/x86_64-linux-gnu/qt5/bin:$PATH"
 fi
 
-# Add system paths to PATH for tool detection
+# Add system paths to PATH for tool detection (only if not using conda exclusively)
 if [[ "$OSTYPE" == "darwin"* ]]; then
     export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+elif [[ "$OSTYPE" == "linux-gnu"* ]] && [ -z "$CONDA_ENV_PATH" ]; then
+    # Only add system paths if conda environment is not configured
     export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+elif [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
+    # For conda environment, only add minimal essential system paths at the end
+    export PATH="$PATH:/usr/bin:/bin"
+    echo "Using minimal system PATH with conda priority"
 fi
 
 # Set OpenCL environment for macOS and Linux
@@ -138,11 +196,17 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
     export LDFLAGS="-L/opt/homebrew/opt/opencl-icd-loader/lib $LDFLAGS"
     export PKG_CONFIG_PATH="/opt/homebrew/opt/opencl-icd-loader/lib/pkgconfig:$PKG_CONFIG_PATH"
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Linux OpenCL environment
-    export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
-    # Add Mesa and NVIDIA OpenCL paths if they exist
-    [ -d "/usr/lib/x86_64-linux-gnu/mesa" ] && export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/mesa:$LD_LIBRARY_PATH"
-    [ -d "/usr/lib/nvidia-opencl-icd" ] && export LD_LIBRARY_PATH="/usr/lib/nvidia-opencl-icd:$LD_LIBRARY_PATH"
+    # Linux OpenCL environment - only if not using conda exclusively
+    if [ -z "$CONDA_ENV_PATH" ]; then
+        export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+        # Add Mesa and NVIDIA OpenCL paths if they exist
+        [ -d "/usr/lib/x86_64-linux-gnu/mesa" ] && export LD_LIBRARY_PATH="/usr/lib/x86_64-linux-gnu/mesa:$LD_LIBRARY_PATH"
+        [ -d "/usr/lib/nvidia-opencl-icd" ] && export LD_LIBRARY_PATH="/usr/lib/nvidia-opencl-icd:$LD_LIBRARY_PATH"
+    else
+        echo "Skipping system OpenCL setup - using conda environment exclusively"
+        # Only add OpenCL paths that don't conflict with conda Qt libraries
+        [ -d "/usr/lib/nvidia-opencl-icd" ] && export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/lib/nvidia-opencl-icd"
+    fi
 fi
 
 # Check if external tools exist
@@ -251,12 +315,32 @@ trap cleanup EXIT INT TERM
 
 # Run the application with clean conda environment
 if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
-    # Clear system library paths and use only conda
+    # Final environment validation and cleanup before launch
     unset LD_PRELOAD
+    
+    # Ensure conda libraries are used exclusively
     export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib"
     export QT_PLUGIN_PATH="$CONDA_ENV_PATH/plugins"
-    echo "Running with pure conda environment"
+    export PATH="$CONDA_ENV_PATH/bin"
+    
+    # Additional Qt environment isolation
+    export QT_QPA_PLATFORM_PLUGIN_PATH="$CONDA_ENV_PATH/plugins/platforms"
+    export QT_LOGGING_RULES="*.debug=false"
+    
+    # Prevent fallback to system Qt
+    export QT_ASSUME_STDERR_HAS_CONSOLE=1
+    export QT_AUTO_SCREEN_SCALE_FACTOR=0
+    
+    echo "Running with pure conda environment (final validation)"
     echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+    echo "QT_PLUGIN_PATH: $QT_PLUGIN_PATH"
+    echo "PATH: $PATH"
+    
+    # Verify Qt5 availability one more time
+    if command -v qmake &> /dev/null; then
+        QT_QMAKE_VERSION=$(qmake -version 2>/dev/null | grep "Qt version" | cut -d' ' -f4)
+        echo "Using Qt version: $QT_QMAKE_VERSION"
+    fi
 fi
 
 "$APP_EXEC" &
