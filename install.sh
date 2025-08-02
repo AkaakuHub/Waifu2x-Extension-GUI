@@ -114,7 +114,8 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         echo "✓ Conda environment ready"
         
         # Save environment info for run script
-        cat > ../../conda_env_info.sh << EOF
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+        cat > "$SCRIPT_DIR/conda_env_info.sh" << EOF
 #!/bin/bash
 # Auto-generated conda environment information
 export CONDA_ENV_NAME="$CONDA_ENV"
