@@ -83,7 +83,7 @@ if [ -f "$CONDA_ENV_PATH/lib/libc.so.6" ]; then
 else
     echo "❌ Conda GLIBC not found - need to install glibc package"
     echo "Installing glibc in conda environment..."
-    conda install -n "$CONDA_ENV" -c conda-forge -y glibc
+    conda install -n "$CONDA_ENV" -c conda-forge -y sysroot_linux-64
     if [ -f "$CONDA_ENV_PATH/lib/libc.so.6" ]; then
         echo "✓ GLIBC installed successfully"
         strings "$CONDA_ENV_PATH/lib/libc.so.6" | grep "GLIBC_" | sort -V | tail -5 | sed 's/^/    /'
