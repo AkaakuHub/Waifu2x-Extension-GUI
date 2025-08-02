@@ -55,7 +55,16 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             
             echo "✓ Conda environment configured"
             echo "  CONDA_ENV_PATH: $CONDA_ENV_PATH"
-            echo "  LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+            
+            # Quick AI tools compatibility check
+            if [ -f "./test_vulkan_deps.sh" ]; then
+                WORKING_TOOLS=$(./test_vulkan_deps.sh 2>/dev/null | grep "Working AI tools:" | cut -d: -f2 | wc -w)
+                if [ "$WORKING_TOOLS" -gt 5 ]; then
+                    echo "  ✓ AI tools ready ($WORKING_TOOLS tools available)"
+                else
+                    echo "  ⚠ Limited AI tools available ($WORKING_TOOLS tools)"
+                fi
+            fi
         fi
     fi
 fi

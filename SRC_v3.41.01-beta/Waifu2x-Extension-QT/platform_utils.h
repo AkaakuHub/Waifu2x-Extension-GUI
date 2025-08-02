@@ -140,15 +140,30 @@ public:
         }
 #endif
 
-        // 2. Check downloaded AI tools in ncnn-vulkan-tools
+        // 2. Check downloaded AI tools in ncnn-vulkan-tools (prefer older versions for compatibility)
         QString appRoot = currentPath + "/../../tools/ncnn-vulkan-tools/bin";
         QDir toolsDir(appRoot);
         if (toolsDir.exists()) {
             QString toolPath = appRoot + "/" + toolName;
             QDir specificToolDir(toolPath);
             if (specificToolDir.exists()) {
-                // Find the actual executable in subdirectories
+                // Find the actual executable in subdirectories, prefer older versions
                 QStringList subdirs = specificToolDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+                
+                // Sort to prefer older releases (2022, 2021 over 2025, 2024)
+                subdirs.sort();
+                
+                for (const QString& subdir : subdirs) {
+                    QString execPath = toolPath + "/" + subdir + "/" + toolName;
+                    if (QFile::exists(execPath)) {
+                        // Prefer older versions for GLIBC compatibility
+                        if (subdir.contains("2022") || subdir.contains("2021") || subdir.contains("2020")) {
+                            return execPath;
+                        }
+                    }
+                }
+                
+                // Fallback to any available version
                 for (const QString& subdir : subdirs) {
                     QString execPath = toolPath + "/" + subdir + "/" + toolName;
                     if (QFile::exists(execPath)) {
