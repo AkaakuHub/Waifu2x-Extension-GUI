@@ -28,27 +28,20 @@ if [ ! -f "$APP_EXEC" ]; then
     exit 1
 fi
 
-# Activate conda environment if it exists (for sudo-less Linux installations)
-if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v conda &> /dev/null; then
-    CONDA_ENV="waifu2x-gui"
-    if conda env list | grep -q "^$CONDA_ENV "; then
-        echo "Activating conda environment: $CONDA_ENV"
-        
-        # Initialize conda properly
-        eval "$(conda shell.bash hook)"
-        conda activate "$CONDA_ENV"
-        
-        # Set up library paths for conda environment
-        export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
-        export LIBRARY_PATH="$CONDA_PREFIX/lib:$LIBRARY_PATH"
-        export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
-        
-        # Add user-space bin to PATH
-        export PATH="$HOME/.local/bin:$CONDA_PREFIX/bin:$PATH"
-        
-        echo "✓ Conda environment activated"
-        echo "  CONDA_PREFIX: $CONDA_PREFIX"
-    fi
+# Load conda environment info if it exists (for sudo-less Linux installations)
+if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -f "$SCRIPT_DIR/conda_env_info.sh" ]; then
+    echo "Loading conda environment configuration..."
+    
+    # Clean existing conda environment variables to prevent conflicts
+    for var in $(env | grep ^CONDA_BACKUP_ | cut -d= -f1 2>/dev/null); do
+        unset $var
+    done
+    
+    # Source the conda environment info
+    source "$SCRIPT_DIR/conda_env_info.sh"
+    
+    echo "✓ Conda environment configured"
+    echo "  CONDA_ENV_PATH: $CONDA_ENV_PATH"
 fi
 
 # Setup Qt5 paths for macOS and Linux
