@@ -117,11 +117,49 @@ public:
         return QDir::tempPath();
     }
     
-    // Find tool in system PATH or application directory
+    // Find tool in conda environment, downloaded tools, system PATH, or application directory
     static QString findTool(const QString& toolName, const QString& appDir = QString())
     {
-#ifdef Q_OS_MAC
-        // First check if tool exists in system PATH
+        QString currentPath = appDir.isEmpty() ? qApp->applicationDirPath() : appDir;
+        
+        // 1. Check conda environment first (Linux priority)
+#ifdef Q_OS_LINUX
+        QString condaEnvPath = qgetenv("CONDA_ENV_PATH");
+        if (!condaEnvPath.isEmpty()) {
+            QString condaPath = condaEnvPath + "/bin/" + toolName;
+            if (QFile::exists(condaPath)) {
+                return condaPath;
+            }
+            // For ImageMagick tools, also check 'magick' command
+            if (toolName == "convert" || toolName == "identify") {
+                QString magickPath = condaEnvPath + "/bin/magick";
+                if (QFile::exists(magickPath)) {
+                    return magickPath;
+                }
+            }
+        }
+#endif
+
+        // 2. Check downloaded AI tools in ncnn-vulkan-tools
+        QString appRoot = currentPath + "/../../tools/ncnn-vulkan-tools/bin";
+        QDir toolsDir(appRoot);
+        if (toolsDir.exists()) {
+            QString toolPath = appRoot + "/" + toolName;
+            QDir specificToolDir(toolPath);
+            if (specificToolDir.exists()) {
+                // Find the actual executable in subdirectories
+                QStringList subdirs = specificToolDir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
+                for (const QString& subdir : subdirs) {
+                    QString execPath = toolPath + "/" + subdir + "/" + toolName;
+                    if (QFile::exists(execPath)) {
+                        return execPath;
+                    }
+                }
+            }
+        }
+
+        // 3. Check system PATH using which (macOS/Linux) or where (Windows)
+#if defined(Q_OS_MAC) || defined(Q_OS_LINUX)
         QProcess which;
         which.start("which", QStringList() << toolName);
         if (which.waitForFinished(3000)) {
@@ -130,16 +168,24 @@ public:
                 return systemPath;
             }
         }
+#elif defined(Q_OS_WIN)
+        QProcess where;
+        where.start("where", QStringList() << toolName);
+        if (where.waitForFinished(3000)) {
+            QString systemPath = QString::fromUtf8(where.readAllStandardOutput()).trimmed();
+            if (!systemPath.isEmpty() && QFile::exists(systemPath)) {
+                return systemPath;
+            }
+        }
 #endif
         
-        // Then check application directory
-        QString currentPath = appDir.isEmpty() ? qApp->applicationDirPath() : appDir;
+        // 4. Check application directory
         QString localPath = currentPath + "/" + getExecutableName(toolName);
         if (QFile::exists(localPath)) {
             return localPath;
         }
         
-        // For Windows, check with _waifu2xEX suffix
+        // 5. For Windows, check with _waifu2xEX suffix
 #ifdef Q_OS_WIN
         QString winPath = currentPath + "/" + getExecutableName(toolName + "_waifu2xEX");
         if (QFile::exists(winPath)) {
@@ -152,61 +198,31 @@ public:
     }
 };
 
-// Convenience macros for common tool names
-#ifdef Q_OS_MAC
-#define FFMPEG_NAME PlatformUtils::getExecutableName("ffmpeg")
-#define FFPROBE_NAME PlatformUtils::getExecutableName("ffprobe")
-#define CONVERT_NAME PlatformUtils::getExecutableName("convert")
-#define IDENTIFY_NAME PlatformUtils::getExecutableName("identify")
-#define GIFSICLE_NAME PlatformUtils::getExecutableName("gifsicle")
-#define WGET_NAME PlatformUtils::getExecutableName("wget")
-#define SOX_NAME PlatformUtils::getExecutableName("sox")
-#else
-#define FFMPEG_NAME PlatformUtils::getExecutableName("ffmpeg_waifu2xEX")
-#define FFPROBE_NAME PlatformUtils::getExecutableName("ffprobe_waifu2xEX")
-#define CONVERT_NAME PlatformUtils::getExecutableName("convert_waifu2xEX")
-#define IDENTIFY_NAME PlatformUtils::getExecutableName("identify_waifu2xEX")
-#define GIFSICLE_NAME PlatformUtils::getExecutableName("gifsicle_waifu2xEX")
-#define WGET_NAME PlatformUtils::getExecutableName("wget_waifu2xEX")
-#define SOX_NAME PlatformUtils::getExecutableName("sox_waifu2xEX")
-#endif
+// Convenience macros for common tool names - use same approach for all platforms
+#define FFMPEG_NAME PlatformUtils::findTool("ffmpeg")
+#define FFPROBE_NAME PlatformUtils::findTool("ffprobe")
+#define CONVERT_NAME PlatformUtils::findTool("convert")
+#define MAGICK_NAME PlatformUtils::findTool("magick")
+#define IDENTIFY_NAME PlatformUtils::findTool("identify")
+#define GIFSICLE_NAME PlatformUtils::findTool("gifsicle")
+#define WGET_NAME PlatformUtils::findTool("wget")
+#define SOX_NAME PlatformUtils::findTool("sox")
 
-// Waifu2x variants
-#ifdef Q_OS_MAC
-#define WAIFU2X_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan")
-#define WAIFU2X_NCNN_VULKAN_FP16P_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan-fp16p")
-#define WAIFU2X_CONVERTER_NAME PlatformUtils::getExecutableName("waifu2x-converter-cpp")
-#define WAIFU2X_CAFFE_NAME PlatformUtils::getExecutableName("waifu2x-caffe")
-#else
-#define WAIFU2X_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan_waifu2xEX")
-#define WAIFU2X_NCNN_VULKAN_FP16P_NAME PlatformUtils::getExecutableName("waifu2x-ncnn-vulkan-fp16p_waifu2xEX")
-#define WAIFU2X_CONVERTER_NAME PlatformUtils::getExecutableName("waifu2x-converter-cpp_waifu2xEX")
-#define WAIFU2X_CAFFE_NAME PlatformUtils::getExecutableName("waifu2x-caffe_waifu2xEX")
-#endif
+// AI tools - use smart detection for all platforms
+#define WAIFU2X_NCNN_VULKAN_NAME PlatformUtils::findTool("waifu2x-ncnn-vulkan")
+#define WAIFU2X_NCNN_VULKAN_FP16P_NAME PlatformUtils::findTool("waifu2x-ncnn-vulkan-fp16p") 
+#define WAIFU2X_CONVERTER_NAME PlatformUtils::findTool("waifu2x-converter-cpp")
+#define WAIFU2X_CAFFE_NAME PlatformUtils::findTool("waifu2x-caffe")
+#define SRMD_NCNN_VULKAN_NAME PlatformUtils::findTool("srmd-ncnn-vulkan")
+#define SRMD_CUDA_NAME PlatformUtils::findTool("srmd-cuda")
+#define REALSR_NCNN_VULKAN_NAME PlatformUtils::findTool("realsr-ncnn-vulkan")
+#define REALCUGAN_NCNN_VULKAN_NAME PlatformUtils::findTool("realcugan-ncnn-vulkan")
+#define RIFE_NCNN_VULKAN_NAME PlatformUtils::findTool("rife-ncnn-vulkan")
+#define CAIN_NCNN_VULKAN_NAME PlatformUtils::findTool("cain-ncnn-vulkan")
+#define DAIN_NCNN_VULKAN_NAME PlatformUtils::findTool("dain-ncnn-vulkan")
+#define ANIME4K_NAME PlatformUtils::findTool("Anime4K")
 
-// Other AI models
-#ifdef Q_OS_MAC
-#define SRMD_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("srmd-ncnn-vulkan")
-#define SRMD_CUDA_NAME PlatformUtils::getExecutableName("srmd-cuda")
-#define REALSR_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("realsr-ncnn-vulkan")
-#define ANIME4K_NAME PlatformUtils::getExecutableName("Anime4K")
-#else
-#define SRMD_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("srmd-ncnn-vulkan_waifu2xEX")
-#define SRMD_CUDA_NAME PlatformUtils::getExecutableName("srmd-cuda_waifu2xEX")
-#define REALSR_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("realsr-ncnn-vulkan_waifu2xEX")
-#define ANIME4K_NAME PlatformUtils::getExecutableName("Anime4K_waifu2xEX")
-#endif
-
-// Frame interpolation
-#ifdef Q_OS_MAC
-#define RIFE_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("rife-ncnn-vulkan")
-#define CAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("cain-ncnn-vulkan")
-#define DAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("dain-ncnn-vulkan")
-#else
-#define RIFE_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("rife-ncnn-vulkan_waifu2xEX")
-#define CAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("cain-ncnn-vulkan_waifu2xEX")
-#define DAIN_NCNN_VULKAN_NAME PlatformUtils::getExecutableName("dain-ncnn-vulkan_waifu2xEX")
-#endif
+// Frame interpolation tools already defined above
 
 // APNG tools
 #define APNGDIS_NAME PlatformUtils::getExecutableName("apngdis_waifu2xEX")
