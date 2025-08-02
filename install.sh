@@ -86,7 +86,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
         
         PACKAGES_NEEDED=""
         PACKAGES_FOUND=""
-        for pkg in pyqt qt cmake make gcc_linux-64 gxx_linux-64 opencv ffmpeg imagemagick mesalib libgl libglu numpy jq wget; do
+        for pkg in pyqt qt cmake make gcc_linux-64 gxx_linux-64 opencv ffmpeg imagemagick mesalib libgl libglu numpy jq wget libstdcxx-ng libgcc-ng libvulkan-loader vulkan-headers vulkan-tools libgomp; do
             pkg_name=${pkg%=*}
             if echo "$INSTALLED_PACKAGES" | grep -q "^$pkg_name$"; then
                 PACKAGES_FOUND="$PACKAGES_FOUND ✓$pkg"
