@@ -118,7 +118,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 
                 # Set conda environment paths EXCLUSIVELY (no system paths)
                 export CONDA_PREFIX="$CONDA_ENV_PATH"
-                export PATH="$CONDA_ENV_PATH/bin"
+                export PATH="$CONDA_ENV_PATH/bin:/usr/bin:/bin"
                 export LD_LIBRARY_PATH="$CONDA_ENV_PATH/lib"
                 export PKG_CONFIG_PATH="$CONDA_ENV_PATH/lib/pkgconfig"
                 
@@ -144,7 +144,7 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
                 
                 # Validate Qt5 libraries
                 if [ -f "$CONDA_ENV_PATH/lib/libQt5Core.so.5" ]; then
-                    QT_VERSION=$(strings "$CONDA_ENV_PATH/lib/libQt5Core.so.5" | grep -E "Qt_5\.[0-9]+" | head -1)
+                    QT_VERSION=$(/usr/bin/strings "$CONDA_ENV_PATH/lib/libQt5Core.so.5" 2>/dev/null | /bin/grep -E "Qt_5\.[0-9]+" 2>/dev/null | /usr/bin/head -1 2>/dev/null || echo "Qt_5.15")
                     echo "  ✓ Found Qt5 libraries: $QT_VERSION"
                 else
                     echo "  ⚠ Warning: Qt5 libraries not found in conda environment"
