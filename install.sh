@@ -80,24 +80,23 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
             echo "✓ Environment already exists"
         fi
         
-        # Install packages
-        echo "Installing packages..."
-        $CONDA_CMD install -n "$CONDA_ENV" -c conda-forge -y \
-            pyqt=5 \
-            qt=5 \
-            cmake \
-            make \
-            gcc_linux-64 \
-            gxx_linux-64 \
-            opencv \
-            ffmpeg \
-            imagemagick \
-            mesalib \
-            libgl \
-            libglu \
-            numpy \
-            jq \
-            wget
+        # Check if packages are already installed
+        echo "Checking installed packages..."
+        PACKAGES_NEEDED=""
+        for pkg in pyqt=5 qt=5 cmake make gcc_linux-64 gxx_linux-64 opencv ffmpeg imagemagick mesalib libgl libglu numpy jq wget; do
+            if ! $CONDA_CMD list -n "$CONDA_ENV" | grep -q "^${pkg%=*} "; then
+                PACKAGES_NEEDED="$PACKAGES_NEEDED $pkg"
+            else
+                echo "✓ $pkg already installed"
+            fi
+        done
+        
+        if [ -n "$PACKAGES_NEEDED" ]; then
+            echo "Installing missing packages:$PACKAGES_NEEDED"
+            $CONDA_CMD install -n "$CONDA_ENV" -c conda-forge -y $PACKAGES_NEEDED
+        else
+            echo "✓ All packages already installed"
+        fi
         
         # Set environment paths
         CONDA_ENV_PATH=$($CONDA_CMD env list | grep "$CONDA_ENV" | awk '{print $2}')
