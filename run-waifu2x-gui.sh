@@ -33,10 +33,21 @@ if [[ "$OSTYPE" == "linux-gnu"* ]] && command -v conda &> /dev/null; then
     CONDA_ENV="waifu2x-gui"
     if conda env list | grep -q "^$CONDA_ENV "; then
         echo "Activating conda environment: $CONDA_ENV"
-        source "$(conda info --base)/etc/profile.d/conda.sh"
+        
+        # Initialize conda properly
+        eval "$(conda shell.bash hook)"
         conda activate "$CONDA_ENV"
+        
+        # Set up library paths for conda environment
+        export LD_LIBRARY_PATH="$CONDA_PREFIX/lib:$LD_LIBRARY_PATH"
+        export LIBRARY_PATH="$CONDA_PREFIX/lib:$LIBRARY_PATH"
+        export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:$PKG_CONFIG_PATH"
+        
         # Add user-space bin to PATH
-        export PATH="$HOME/.local/bin:$PATH"
+        export PATH="$HOME/.local/bin:$CONDA_PREFIX/bin:$PATH"
+        
+        echo "✓ Conda environment activated"
+        echo "  CONDA_PREFIX: $CONDA_PREFIX"
     fi
 fi
 
