@@ -58,6 +58,14 @@ download_tool() {
         return 1
     fi
     
+    # Debug: Check if API response contains error
+    if echo "$release_info" | grep -q "rate limit\|API rate limit"; then
+        echo "  Error: GitHub API rate limit exceeded"
+        echo "  Waiting 60 seconds before retry..."
+        sleep 60
+        release_info=$(curl -s -H "User-Agent: Waifu2x-Extension-GUI" "$api_url")
+    fi
+    
     # Extract download URL based on platform
     local download_url=""
     if command -v jq &> /dev/null; then
