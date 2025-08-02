@@ -200,7 +200,13 @@ elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
     BUILD_CHECK="build/Waifu2x-Extension-GUI"
 fi
 
-if [ -f "$BUILD_CHECK" ]; then
+# Force rebuild for conda environment to ensure Qt5 compatibility
+if [ -f "$BUILD_CHECK" ] && [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
+    echo "Existing build found, but rebuilding for conda Qt5 environment..."
+    rm -rf build
+    mkdir build
+    cd build
+elif [ -f "$BUILD_CHECK" ]; then
     echo "Application already built. Skipping build step."
     echo "To rebuild, delete the build directory first: rm -rf SRC_v3.41.01-beta/Waifu2x-Extension-QT/build"
     cd build
