@@ -62,7 +62,11 @@ else
         pip \
         numpy \
         jq \
-        wget || echo "Some conda packages failed, continuing..."
+        wget \
+        mesa-libgl-devel-cos6-x86_64 \
+        mesa-dri-drivers-cos6-x86_64 \
+        libgl-devel-cos6-x86_64 \
+        mesa-libgl-cos6-x86_64 || echo "Some conda packages failed, continuing..."
 fi
 
 # Install additional Python packages
