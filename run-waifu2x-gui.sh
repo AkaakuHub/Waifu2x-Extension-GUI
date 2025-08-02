@@ -28,6 +28,25 @@ if [ ! -f "$APP_EXEC" ]; then
     exit 1
 fi
 
+# Set up environment to avoid home directory space limitations on Linux
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    # Override home directory references to use export data directory
+    export HOME="$SCRIPT_DIR"
+    export XDG_CONFIG_HOME="$SCRIPT_DIR/.config"
+    export XDG_DATA_HOME="$SCRIPT_DIR/.local/share"
+    export XDG_CACHE_HOME="$SCRIPT_DIR/.cache"
+    
+    # Create necessary directories
+    mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_CACHE_HOME"
+    
+    # Limit inotify usage to prevent home directory monitoring
+    ulimit -n 256
+    
+    echo "✓ Home directory overrides configured"
+    echo "  HOME: $HOME"
+    echo "  XDG_CONFIG_HOME: $XDG_CONFIG_HOME"
+fi
+
 # Set up conda environment for Linux no-sudo installations
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
     # Check if conda waifu2x-gui environment exists
