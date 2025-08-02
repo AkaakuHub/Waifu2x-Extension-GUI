@@ -39,11 +39,16 @@ conda activate "$CONDA_ENV"
 
 # Install packages via conda-forge
 echo "Installing packages from conda-forge..."
-# Check if key packages are already installed
-if conda list | grep -q "cmake.*conda-forge" && conda list | grep -q "qt.*6\."; then
-    echo "✓ Main packages already installed, skipping conda install"
+
+# Check individual key packages
+CMAKE_INSTALLED=$(conda list cmake | grep -c "cmake" || echo "0")
+QT_INSTALLED=$(conda list qt | grep -c "qt.*6\." || echo "0")
+GCC_INSTALLED=$(conda list gcc_linux-64 | grep -c "gcc_linux-64" || echo "0")
+
+if [ "$CMAKE_INSTALLED" -gt "0" ] && [ "$QT_INSTALLED" -gt "0" ] && [ "$GCC_INSTALLED" -gt "0" ]; then
+    echo "✓ Main packages (cmake, qt6, gcc) already installed, skipping conda install"
 else
-    echo "Installing missing packages..."
+    echo "Installing missing packages... (cmake: $CMAKE_INSTALLED, qt6: $QT_INSTALLED, gcc: $GCC_INSTALLED)"
     conda install -c conda-forge -y \
         cmake \
         git \
