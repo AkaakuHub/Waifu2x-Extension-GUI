@@ -19,6 +19,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "platform_utils.h"
+#include <QFileInfo>
 
 void MainWindow::on_pushButton_compatibilityTest_clicked()
 {
