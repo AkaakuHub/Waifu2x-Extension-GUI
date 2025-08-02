@@ -188,6 +188,18 @@ echo "Setting up external tools..."
 echo "----------------------------------------"
 bash tools/ncnn-vulkan-tools/download_ncnn_tools.sh
 
+# Download GLIBC 2.31 compatible versions for problematic tools
+if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+    echo ""
+    echo "Installing GLIBC 2.31 compatible AI tools..."
+    echo "----------------------------------------"
+    if [ -f "./tools/ncnn-vulkan-tools/download_compatible_tools.sh" ]; then
+        bash tools/ncnn-vulkan-tools/download_compatible_tools.sh
+    else
+        echo "⚠ Compatible tools script not found, using available versions"
+    fi
+fi
+
 # Test AI tools compatibility after download
 echo ""
 echo "Testing AI tools compatibility..."
