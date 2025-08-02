@@ -26,7 +26,10 @@ echo "✓ conda found"
 # Create conda environment
 echo "Creating conda environment: $CONDA_ENV"
 if ! conda env list | grep -q "^$CONDA_ENV "; then
+    echo "Creating new conda environment..."
     conda create -n "$CONDA_ENV" python=3.9 -y
+else
+    echo "✓ Conda environment already exists, skipping creation"
 fi
 
 # Activate environment
@@ -36,20 +39,26 @@ conda activate "$CONDA_ENV"
 
 # Install packages via conda-forge
 echo "Installing packages from conda-forge..."
-conda install -c conda-forge -y \
-    cmake \
-    git \
-    make \
-    gcc_linux-64 \
-    gxx_linux-64 \
-    qt \
-    opencv \
-    ffmpeg \
-    python \
-    pip \
-    numpy \
-    jq \
-    wget || echo "Some conda packages failed, continuing..."
+# Check if key packages are already installed
+if conda list | grep -q "cmake.*conda-forge" && conda list | grep -q "qt.*6\."; then
+    echo "✓ Main packages already installed, skipping conda install"
+else
+    echo "Installing missing packages..."
+    conda install -c conda-forge -y \
+        cmake \
+        git \
+        make \
+        gcc_linux-64 \
+        gxx_linux-64 \
+        qt \
+        opencv \
+        ffmpeg \
+        python \
+        pip \
+        numpy \
+        jq \
+        wget || echo "Some conda packages failed, continuing..."
+fi
 
 # Install additional Python packages
 echo "Installing additional packages via pip..."
@@ -63,7 +72,7 @@ mkdir -p "$HOME/.local/bin"
 export PATH="$HOME/.local/bin:$PATH"
 
 # Install ImageMagick (AppImage)
-if ! command -v convert &> /dev/null; then
+if ! command -v convert &> /dev/null && ! [ -f "$HOME/.local/bin/convert" ]; then
     echo "Installing ImageMagick AppImage..."
     cd /tmp
     wget -q https://github.com/ImageMagick/ImageMagick/releases/download/7.1.1-15/ImageMagick-7.1.1-15-x86_64.AppImage || echo "ImageMagick download failed"
@@ -72,10 +81,12 @@ if ! command -v convert &> /dev/null; then
         mv ImageMagick-7.1.1-15-x86_64.AppImage "$HOME/.local/bin/magick"
         ln -sf "$HOME/.local/bin/magick" "$HOME/.local/bin/convert"
     fi
+else
+    echo "✓ ImageMagick already available"
 fi
 
 # Install gifsicle from source
-if ! command -v gifsicle &> /dev/null; then
+if ! command -v gifsicle &> /dev/null && ! [ -f "$HOME/.local/bin/gifsicle" ]; then
     echo "Building gifsicle from source..."
     cd /tmp
     wget -q https://www.lcdf.org/gifsicle/gifsicle-1.94.tar.gz || echo "gifsicle download failed"
@@ -84,33 +95,44 @@ if ! command -v gifsicle &> /dev/null; then
         cd gifsicle-1.94
         ./configure --prefix="$HOME/.local" && make && make install || echo "gifsicle build failed"
     fi
+else
+    echo "✓ gifsicle already available"
 fi
 
 # Download ncnn-vulkan tools
 echo "Downloading ncnn-vulkan tools..."
 cd "$SCRIPT_DIR"
-./tools/ncnn-vulkan-tools/download_ncnn_tools.sh
+if [ -d "tools/ncnn-vulkan-tools/bin" ] && [ "$(ls -A tools/ncnn-vulkan-tools/bin 2>/dev/null)" ]; then
+    echo "✓ ncnn-vulkan tools already downloaded"
+else
+    ./tools/ncnn-vulkan-tools/download_ncnn_tools.sh
+fi
 
 # Build the application
 echo "Building Waifu2x-Extension-GUI..."
 cd "$SCRIPT_DIR/SRC_v3.41.01-beta/Waifu2x-Extension-QT"
 
-# Clean previous build
-if [ -d "build" ]; then
-    rm -rf build
+# Check if already built
+if [ -f "build/Waifu2x-Extension-GUI" ]; then
+    echo "✓ Application already built, skipping build step"
+    echo "  To rebuild, delete the build directory: rm -rf build"
+else
+    echo "Building application..."
+    
+    # Clean previous build
+    if [ -d "build" ]; then
+        rm -rf build
+    fi
+
+    mkdir -p build
+    cd build
+
+    # Configure with qmake (not cmake)
+    qmake ../Waifu2x-Extension-QT.pro
+
+    # Build
+    make -j$(nproc)
 fi
-
-mkdir -p build
-cd build
-
-# Configure with cmake
-cmake .. \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_PREFIX_PATH="$CONDA_PREFIX" \
-    -DQt5_DIR="$CONDA_PREFIX/lib/cmake/Qt5"
-
-# Build
-make -j$(nproc)
 
 echo "======================================================================"
 echo "Installation completed!"

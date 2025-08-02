@@ -63,14 +63,14 @@ download_tool() {
     if command -v jq &> /dev/null; then
         # Use jq for more reliable parsing
         if [[ "$PLATFORM" == "linux" ]]; then
-            download_url=$(echo "$release_info" | jq -r '.assets[] | select(.name | contains("linux")) | .browser_download_url' | head -1)
+            download_url=$(echo "$release_info" | jq -r '.assets[] | select(.name | contains("ubuntu") or .name | contains("linux")) | .browser_download_url' | head -1)
         else
             download_url=$(echo "$release_info" | jq -r '.assets[] | select(.name | contains("macos")) | .browser_download_url' | head -1)
         fi
     else
         # Fallback to grep/sed
         if [[ "$PLATFORM" == "linux" ]]; then
-            download_url=$(echo "$release_info" | grep "browser_download_url" | grep "linux" | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/' | head -1)
+            download_url=$(echo "$release_info" | grep "browser_download_url" | grep -E "(ubuntu|linux)" | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/' | head -1)
         else
             download_url=$(echo "$release_info" | grep "browser_download_url" | grep "macos" | sed 's/.*"browser_download_url": "\([^"]*\)".*/\1/' | head -1)
         fi
