@@ -336,7 +336,7 @@ cleanup() {
     echo "Cleaning up processes..."
     # Try gentle termination first
     pkill -TERM -f "Waifu2x-Extension-GUI" 2>/dev/null || true
-    /bin//bin/sleep 1
+    /bin/sleep 1
     # Force kill if still running
     pkill -KILL -f "Waifu2x-Extension-GUI" 2>/dev/null || true
     # Also kill by process name
@@ -359,6 +359,17 @@ if [[ "$OSTYPE" == "linux-gnu"* ]] && [ -n "$CONDA_ENV_PATH" ]; then
     # Additional Qt environment isolation
     export QT_QPA_PLATFORM_PLUGIN_PATH="$CONDA_ENV_PATH/plugins/platforms"
     export QT_LOGGING_RULES="*.debug=false"
+    
+    # X11 and display configuration
+    if [ -z "$DISPLAY" ]; then
+        echo "⚠ Warning: DISPLAY not set, attempting to configure X11 forwarding"
+        export DISPLAY=:0.0
+    fi
+    
+    # Qt platform configuration
+    export QT_QPA_PLATFORM=xcb
+    export QT_X11_NO_MITSHM=1
+    export QT_XCB_GL_INTEGRATION=none
     
     # Prevent fallback to system Qt
     export QT_ASSUME_STDERR_HAS_CONSOLE=1
@@ -387,7 +398,7 @@ APP_EXIT_CODE=$?
 if [ $APP_EXIT_CODE -ne 0 ] || kill -0 $APP_PID 2>/dev/null; then
     echo "Killing application process $APP_PID"
     kill -TERM $APP_PID 2>/dev/null || true
-    /bin//bin/sleep 1
+    /bin/sleep 1
     kill -KILL $APP_PID 2>/dev/null || true
 fi
 
