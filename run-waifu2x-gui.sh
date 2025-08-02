@@ -49,27 +49,60 @@ fi
 
 # Set up conda environment for Linux no-sudo installations
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    # Check if conda waifu2x-gui environment exists
-    if command -v conda &> /dev/null; then
-        CONDA_ENV="waifu2x-gui"
-        if conda env list | grep -q "^$CONDA_ENV "; then
-            echo "Loading conda environment configuration..."
+    CONDA_ENV="waifu2x-gui"
+    CONDA_ENV_PATH=""
+    
+    # Try to find conda command in multiple locations
+    CONDA_CMD=""
+    for conda_path in "$HOME/miniconda3/bin/conda" "$HOME/anaconda3/bin/conda" "/usr/local/anaconda3/bin/conda" "/opt/conda/bin/conda" "/export/data/m2311202/miniconda3/bin/conda" "/export/data/m2311202/anaconda3/bin/conda"; do
+        if [ -f "$conda_path" ]; then
+            CONDA_CMD="$conda_path"
+            break
+        fi
+    done
+    
+    # Fallback to system conda if available
+    if [ -z "$CONDA_CMD" ] && command -v conda &> /dev/null; then
+        CONDA_CMD="conda"
+    fi
+    
+    if [ -n "$CONDA_CMD" ]; then
+        echo "Found conda at: $CONDA_CMD"
+        
+        # First priority: Check the expected path directly
+        EXPECTED_PATH="/export/data/m2311202/conda_envs/waifu2x-gui"
+        if [ -d "$EXPECTED_PATH" ] && [ -f "$EXPECTED_PATH/bin/python" ]; then
+            echo "✓ Found conda environment at expected location: $EXPECTED_PATH"
+            CONDA_ENV_PATH="$EXPECTED_PATH"
+        else
+            # Second priority: Try conda env list command
+            if $CONDA_CMD env list | grep -q "^$CONDA_ENV "; then
+                echo "Loading conda environment configuration from conda env list..."
+                CONDA_ENV_PATH=$($CONDA_CMD env list | grep "^$CONDA_ENV " | awk '{print $2}')
+                
+                if [ -n "$CONDA_ENV_PATH" ] && [ -d "$CONDA_ENV_PATH" ]; then
+                    echo "✓ Found conda environment via conda env list: $CONDA_ENV_PATH"
+                else
+                    CONDA_ENV_PATH=""
+                fi
+            fi
             
-            # Get conda environment path - try multiple detection methods
-            CONDA_ENV_PATH=$(conda env list | grep "^$CONDA_ENV " | awk '{print $2}')
-            
-            # Fallback: try common conda installation paths
-            if [ -z "$CONDA_ENV_PATH" ] || [ ! -d "$CONDA_ENV_PATH" ]; then
-                for potential_path in "/export/data/m2311202/conda_envs/waifu2x-gui" "$HOME/conda/envs/waifu2x-gui" "$HOME/miniconda3/envs/waifu2x-gui" "$HOME/anaconda3/envs/waifu2x-gui"; do
-                    if [ -d "$potential_path" ]; then
+            # Third priority: Search common conda environment paths
+            if [ -z "$CONDA_ENV_PATH" ]; then
+                echo "Searching for conda environment in common locations..."
+                for potential_path in "/export/data/m2311202/conda_envs/waifu2x-gui" "/export/data/m2311202/miniconda3/envs/waifu2x-gui" "/export/data/m2311202/anaconda3/envs/waifu2x-gui" "$HOME/conda_envs/waifu2x-gui" "$HOME/miniconda3/envs/waifu2x-gui" "$HOME/anaconda3/envs/waifu2x-gui" "/opt/conda/envs/waifu2x-gui"; do
+                    if [ -d "$potential_path" ] && [ -f "$potential_path/bin/python" ]; then
+                        echo "✓ Found conda environment at: $potential_path"
                         CONDA_ENV_PATH="$potential_path"
                         break
                     fi
                 done
             fi
-            
-            if [ -n "$CONDA_ENV_PATH" ] && [ -d "$CONDA_ENV_PATH" ]; then
-                echo "Found conda environment at: $CONDA_ENV_PATH"
+        fi
+        
+        # If conda environment was found, configure it
+        if [ -n "$CONDA_ENV_PATH" ] && [ -d "$CONDA_ENV_PATH" ]; then
+            echo "Configuring conda environment at: $CONDA_ENV_PATH"
                 
                 # Clean existing conda environment variables to prevent conflicts
                 for var in $(env | grep ^CONDA_BACKUP_ | cut -d= -f1 2>/dev/null); do
@@ -126,14 +159,14 @@ if [[ "$OSTYPE" == "linux-gnu"* ]]; then
                         echo "  ⚠ Limited AI tools available ($WORKING_TOOLS tools)"
                     fi
                 fi
-            else
-                echo "  ⚠ Warning: Could not locate conda environment directory"
-            fi
         else
-            echo "  ⚠ Warning: Conda environment 'waifu2x-gui' not found"
+            echo "  ⚠ Warning: Could not locate conda environment directory"
+            echo "  Expected path: /export/data/m2311202/conda_envs/waifu2x-gui"
+            echo "  Run ./debug-conda-env.sh for detailed diagnosis"
         fi
     else
         echo "  ⚠ Warning: Conda not found in PATH"
+        echo "  Run ./debug-conda-env.sh to check conda installation"
     fi
 fi
 
