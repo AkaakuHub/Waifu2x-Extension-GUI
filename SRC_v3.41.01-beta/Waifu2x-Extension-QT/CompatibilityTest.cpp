@@ -44,9 +44,9 @@ int MainWindow::Waifu2x_Compatibility_Test()
     //==========================================
     //         waifu2x-ncnn-vulkan 最新版
     //==========================================
+    QString Waifu2x_folder_path = Current_Path + "/waifu2x-ncnn-vulkan";
     QString program = WAIFU2X_NCNN_VULKAN_NAME; // Use smart detection
-    // For compatibility test, use standard model path
-    QString model_path = Current_Path + "/waifu2x-ncnn-vulkan/models-upconv_7_anime_style_art_rgb";
+    QString model_path = Waifu2x_folder_path + "/models-upconv_7_anime_style_art_rgb";
     QProcess *Waifu2x_vulkan = new QProcess();
     QString cmd = "\"" + program + "\"" + " -i " + "\"" + InputPath + "\"" + " -o " + "\"" + OutputPath + "\"" + " -s 2 -n 0 -t 32 -m " + "\"" + model_path + "\"" + " -j 1:1:1";
     for(int CompatTest_retry=0; CompatTest_retry<3; CompatTest_retry++)
